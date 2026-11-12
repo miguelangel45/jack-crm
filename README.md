@@ -29,6 +29,18 @@ npm run dev
 
 Abre http://localhost:3000.
 
+## Publicación en GitHub Pages
+
+La presentación pública del proyecto está en `docs/`. GitHub Pages publica
+`main` desde la carpeta `/docs`, por lo que cada actualización de esos archivos
+en `main` se refleja automáticamente en el sitio.
+
+URL: https://miguelangel45.github.io/jack-crm/
+
+GitHub Pages solo sirve contenido estático. El inicio de sesión, las rutas API,
+los webhooks y las integraciones de `crm-operativo/` requieren un servidor para
+funcionar y no forman parte de esta publicación.
+
 ## Arquitectura
 
 La UI vive en `src/app`, los tipos de dominio en `src/domain` y los datos de ejemplo en `src/lib`.
