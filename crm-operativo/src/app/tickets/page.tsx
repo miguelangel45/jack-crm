@@ -73,7 +73,7 @@ export default function TicketsPage() {
 
   return (
     <AuthGate route="tickets">
-      <main className="mx-auto max-w-6xl px-4 py-8 sm:px-6 lg:px-8">
+      <main className="crm-main mx-auto max-w-6xl px-4 py-8 sm:px-6 lg:px-8">
         <SiteNav />
         <header className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
           <div>

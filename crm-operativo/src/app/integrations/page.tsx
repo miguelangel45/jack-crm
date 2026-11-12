@@ -37,7 +37,7 @@ export default function IntegrationsPage() {
 
   return (
     <AuthGate route="integrations">
-      <main className="mx-auto max-w-6xl px-4 py-8 sm:px-6 lg:px-8">
+      <main className="crm-main mx-auto max-w-6xl px-4 py-8 sm:px-6 lg:px-8">
         <SiteNav />
         <header className="mb-6">
           <p className="text-sm font-medium uppercase tracking-[0.18em] text-brand-600">Integraciones</p>
