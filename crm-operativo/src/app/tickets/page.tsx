@@ -6,6 +6,7 @@ import { SiteNav } from "@/components/site-nav";
 import { tickets as fallbackTickets } from "@/domain/integrations";
 import { getRoleAccessFor, type AppRole } from "@/lib/auth";
 import { getSessionFromStorage } from "@/lib/permissions";
+import { isPagesDemo } from "@/lib/pages-demo";
 
 type Ticket = {
   id: string;
@@ -32,9 +33,10 @@ function downloadTicketCsv(filename: string, rows: string[][]) {
 
 export default function TicketsPage() {
   const [tickets, setTickets] = useState<Ticket[]>(fallbackTickets);
-  const [session, setSession] = useState<{ role: AppRole } | null>(null);
+  const [session, setSession] = useState<{ role: AppRole } | null>(isPagesDemo ? { role: "admin" } : null);
 
   useEffect(() => {
+    if (isPagesDemo) return;
     const activeSession = getSessionFromStorage();
     if (activeSession) {
       setSession({ role: activeSession.role });

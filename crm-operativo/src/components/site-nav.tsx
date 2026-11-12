@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import { roleLabels, type AppRole } from "@/lib/auth";
 import { clearExpiredSession, getRoutePermissionsForRole, INACTIVITY_TIMEOUT_MS, triggerSessionActivity } from "@/lib/permissions";
 import { ThemeToggle } from "@/components/theme-toggle";
+import { isPagesDemo } from "@/lib/pages-demo";
 
 const navItems = [
   { href: "/dashboard", label: "Dashboard" },
@@ -17,6 +18,11 @@ export function SiteNav() {
   const [session, setSession] = useState<{ email: string; role: AppRole; name: string } | null>(null);
 
   useEffect(() => {
+    if (isPagesDemo) {
+      setSession({ email: "demo@crm.local", role: "admin", name: "Vista demo" });
+      return;
+    }
+
     let lastServerRefreshAt = 0;
 
     const syncSession = () => {
@@ -119,18 +125,24 @@ export function SiteNav() {
 
       <div className="flex flex-wrap items-center justify-end gap-3 px-2 py-1">
         <ThemeToggle />
-        <span className="text-xs uppercase tracking-[0.18em] text-slate-500">{session ? roleLabels[session.role] : "Sesión"}</span>
-        <button
-          type="button"
-          onClick={async () => {
-            await fetch("/api/auth/logout", { method: "POST" }).catch(() => undefined);
-            localStorage.removeItem("crm-session");
-            window.location.href = "/login";
-          }}
-          className="rounded-xl border border-slate-200 px-3 py-1.5 text-xs font-medium text-slate-700"
-        >
-          Cerrar sesión
-        </button>
+        <span className="text-xs uppercase tracking-[0.18em] text-slate-500">{isPagesDemo ? "Demo" : session ? roleLabels[session.role] : "Sesión"}</span>
+        {isPagesDemo ? (
+          <Link href="/" className="rounded-xl border border-slate-200 px-3 py-1.5 text-xs font-medium text-slate-700">
+            Volver al inicio
+          </Link>
+        ) : (
+          <button
+            type="button"
+            onClick={async () => {
+              await fetch("/api/auth/logout", { method: "POST" }).catch(() => undefined);
+              localStorage.removeItem("crm-session");
+              window.location.href = "/login";
+            }}
+            className="rounded-xl border border-slate-200 px-3 py-1.5 text-xs font-medium text-slate-700"
+          >
+            Cerrar sesión
+          </button>
+        )}
       </div>
     </nav>
   );

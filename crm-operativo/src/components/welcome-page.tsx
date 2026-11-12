@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { ThemeToggle } from "@/components/theme-toggle";
 import type { Provider } from "@/domain/integrations";
+import { isPagesDemo } from "@/lib/pages-demo";
 
 const channels: { provider: Provider; name: string; detail: string; icon: "facebook" | "instagram" | "mercadolibre" }[] = [
   { provider: "facebook", name: "Facebook", detail: "Mensajes y atención desde tus páginas", icon: "facebook" },
@@ -58,8 +59,8 @@ export function WelcomePage() {
           </Link>
           <div className="flex items-center gap-3">
             <ThemeToggle />
-            <Link href="/login" className="hidden rounded-xl px-4 py-2.5 text-sm font-semibold text-slate-700 transition hover:bg-white dark:text-slate-200 dark:hover:bg-slate-800 sm:inline-flex">
-              Iniciar sesión
+            <Link href={isPagesDemo ? "/dashboard" : "/login"} className="hidden rounded-xl px-4 py-2.5 text-sm font-semibold text-slate-700 transition hover:bg-white dark:text-slate-200 dark:hover:bg-slate-800 sm:inline-flex">
+              {isPagesDemo ? "Explorar demo" : "Iniciar sesión"}
             </Link>
           </div>
         </header>
@@ -79,8 +80,8 @@ export function WelcomePage() {
               Reúne conversaciones, reclamaciones y métricas de servicio en una experiencia clara para todo tu equipo.
             </p>
             <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-              <Link href="/login" className="inline-flex min-h-12 items-center justify-center gap-2 rounded-xl bg-slate-900 px-5 py-3 text-sm font-semibold text-white shadow-lg shadow-slate-900/10 transition hover:-translate-y-0.5 hover:bg-slate-800 dark:bg-blue-500 dark:hover:bg-blue-400">
-                Acceder al CRM
+              <Link href={isPagesDemo ? "/dashboard" : "/login"} className="inline-flex min-h-12 items-center justify-center gap-2 rounded-xl bg-slate-900 px-5 py-3 text-sm font-semibold text-white shadow-lg shadow-slate-900/10 transition hover:-translate-y-0.5 hover:bg-slate-800 dark:bg-blue-500 dark:hover:bg-blue-400">
+                {isPagesDemo ? "Explorar demo" : "Acceder al CRM"}
                 <svg viewBox="0 0 20 20" className="h-4 w-4" fill="none" aria-hidden="true"><path d="M4 10h12m-5-5 5 5-5 5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" /></svg>
               </Link>
               <a href="#integraciones" className="inline-flex min-h-12 items-center justify-center rounded-xl border border-slate-200 bg-white/80 px-5 py-3 text-sm font-semibold text-slate-700 transition hover:bg-white dark:border-slate-700 dark:bg-slate-800/80 dark:text-slate-200 dark:hover:bg-slate-800">
@@ -161,7 +162,7 @@ export function WelcomePage() {
 
         <footer className="flex flex-col items-center justify-between gap-3 border-t border-slate-200 py-6 text-sm text-slate-500 sm:flex-row dark:border-slate-700 dark:text-slate-400">
           <span>CRM · Atención y servicio al cliente</span>
-          <Link href="/login" className="font-semibold text-slate-700 hover:text-blue-700 dark:text-slate-200 dark:hover:text-blue-300">Entrar a mi espacio →</Link>
+          <Link href={isPagesDemo ? "/dashboard" : "/login"} className="font-semibold text-slate-700 hover:text-blue-700 dark:text-slate-200 dark:hover:text-blue-300">{isPagesDemo ? "Explorar demo →" : "Entrar a mi espacio →"}</Link>
         </footer>
       </div>
     </main>

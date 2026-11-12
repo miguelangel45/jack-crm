@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { AuthGate } from "@/components/auth-gate";
 import { SiteNav } from "@/components/site-nav";
 import { conversations as fallbackConversations, providerLabels } from "@/domain/integrations";
+import { isPagesDemo } from "@/lib/pages-demo";
 
 type Conversation = {
   id: string;
@@ -19,6 +20,7 @@ export default function InboxPage() {
   const [conversations, setConversations] = useState<Conversation[]>(fallbackConversations);
 
   useEffect(() => {
+    if (isPagesDemo) return;
     async function loadConversations() {
       try {
         const response = await fetch("/api/conversations");

@@ -6,6 +6,7 @@ import { formatChannelLabel, type Claim } from "@/domain/crm";
 import { getRoleAccessFor, type AppRole } from "@/lib/auth";
 import { getSessionFromStorage } from "@/lib/permissions";
 import { claims as fallbackClaims, integrations as fallbackIntegrations, metrics, serviceMetrics } from "@/lib/data";
+import { isPagesDemo } from "@/lib/pages-demo";
 
 type ApiIntegration = {
   name: string;
@@ -52,9 +53,10 @@ function downloadCsv(filename: string, rows: string[][]) {
 export function Dashboard() {
   const [integrations, setIntegrations] = useState(fallbackIntegrations);
   const [claims, setClaims] = useState<Claim[]>(fallbackClaims);
-  const [session, setSession] = useState<{ role: AppRole } | null>(null);
+  const [session, setSession] = useState<{ role: AppRole } | null>(isPagesDemo ? { role: "admin" } : null);
 
   useEffect(() => {
+    if (isPagesDemo) return;
     const activeSession = getSessionFromStorage();
     if (activeSession) {
       setSession({ role: activeSession.role });

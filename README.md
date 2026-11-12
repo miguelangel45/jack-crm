@@ -31,15 +31,19 @@ Abre http://localhost:3000.
 
 ## Publicación en GitHub Pages
 
-La presentación pública del proyecto está en `docs/`. GitHub Pages publica
-`main` desde la carpeta `/docs`, por lo que cada actualización de esos archivos
-en `main` se refleja automáticamente en el sitio.
+El workflow `.github/workflows/pages.yml` se ejecuta con cada push a `main` y
+publica una exportación estática de `crm-operativo/` en GitHub Pages. La barra
+superior muestra el commit publicado. También se puede ejecutar manualmente
+desde la pestaña Actions.
 
 URL: https://miguelangel45.github.io/jack-crm/
 
-GitHub Pages solo sirve contenido estático. El inicio de sesión, las rutas API,
-los webhooks y las integraciones de `crm-operativo/` requieren un servidor para
-funcionar y no forman parte de esta publicación.
+La exportación usa datos de ejemplo para el dashboard, inbox, tickets e
+integraciones. GitHub Pages solo sirve contenido estático: el inicio de sesión,
+las rutas API, los webhooks y las integraciones reales requieren un servidor.
+Los cambios en la interfaz de `crm-operativo/` aparecen en la siguiente
+publicación; otros cambios en el repositorio disparan una nueva compilación y
+actualizan el identificador de versión mostrado en la página.
 
 ## Arquitectura
 

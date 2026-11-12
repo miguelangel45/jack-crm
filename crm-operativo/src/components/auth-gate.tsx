@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { type AppRole } from "@/lib/auth";
 import { clearExpiredSession, getSessionFromStorage, getRoutePermissionsForRole } from "@/lib/permissions";
+import { isPagesDemo } from "@/lib/pages-demo";
 
 export function AuthGate({
   route,
@@ -13,9 +14,13 @@ export function AuthGate({
   children: React.ReactNode;
   fallback?: React.ReactNode;
 }) {
-  const [authorized, setAuthorized] = useState<boolean | null>(null);
+  const [authorized, setAuthorized] = useState<boolean | null>(isPagesDemo ? true : null);
 
   useEffect(() => {
+    if (isPagesDemo) {
+      setAuthorized(true);
+      return;
+    }
     const session = getSessionFromStorage();
 
     if (!session) {

@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { AuthGate } from "@/components/auth-gate";
 import { SiteNav } from "@/components/site-nav";
 import { integrationConnections as fallbackConnections, providerLabels } from "@/domain/integrations";
+import { isPagesDemo } from "@/lib/pages-demo";
 
 type Connection = {
   id: string;
@@ -19,6 +20,7 @@ export default function IntegrationsPage() {
   const [connections, setConnections] = useState<Connection[]>(fallbackConnections);
 
   useEffect(() => {
+    if (isPagesDemo) return;
     async function loadConnections() {
       try {
         const response = await fetch("/api/integrations");

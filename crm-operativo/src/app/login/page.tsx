@@ -1,7 +1,9 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { ThemeToggle } from "@/components/theme-toggle";
+import { isPagesDemo } from "@/lib/pages-demo";
 
 export default function LoginPage() {
   const [username, setUsername] = useState("");
@@ -45,6 +47,18 @@ export default function LoginPage() {
     } finally {
       setIsLoading(false);
     }
+  }
+
+  if (isPagesDemo) {
+    return (
+      <main className="flex min-h-screen items-center justify-center px-4 py-12">
+        <div className="w-full max-w-lg rounded-3xl border border-slate-200 bg-white p-8 text-center shadow-soft">
+          <h1 className="text-3xl font-bold text-slate-900">Explora el CRM</h1>
+          <p className="mt-4 text-sm leading-6 text-slate-600">Esta versión pública utiliza datos de ejemplo. El acceso con credenciales y las integraciones necesitan un servidor.</p>
+          <Link href="/dashboard" className="mt-6 inline-flex rounded-xl bg-slate-900 px-5 py-3 text-sm font-semibold text-white">Abrir la demostración</Link>
+        </div>
+      </main>
+    );
   }
 
   return (
