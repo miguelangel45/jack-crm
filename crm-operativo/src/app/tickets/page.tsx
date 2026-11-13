@@ -78,7 +78,7 @@ export default function TicketsPage() {
         <header className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
           <div>
             <p className="text-sm font-medium uppercase tracking-[0.18em] text-brand-600">Tickets</p>
-            <h1 className="mt-2 text-3xl font-bold text-slate-900">Gestión de reclamaciones</h1>
+            <h1 className="mt-2 text-3xl font-semibold text-slate-900">Gestión de reclamaciones</h1>
           </div>
           <button
             type="button"

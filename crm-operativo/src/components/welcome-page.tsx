@@ -22,7 +22,7 @@ export function WelcomePage() {
               </svg>
             </span>
             <span className="welcome-brand-copy block">
-              <span className="block text-sm font-bold tracking-[0.16em] text-[var(--welcome-text)]">CRM</span>
+              <span className="block text-sm font-semibold tracking-[0.08em] text-[var(--welcome-text)]">CRM</span>
               <span className="block text-xs text-[var(--welcome-secondary)]">Atención unificada</span>
             </span>
           </Link>
@@ -70,7 +70,7 @@ export function WelcomePage() {
               <span className="h-2 w-2 rounded-full bg-[var(--welcome-champagne)]" />
               Tu operación, en un solo lugar
             </div>
-            <h1 className="mt-6 max-w-2xl text-4xl font-bold leading-[1.08] tracking-tight text-[var(--welcome-text)] sm:text-5xl lg:text-6xl">
+            <h1 className="mt-6 max-w-2xl text-4xl font-semibold leading-[1.08] tracking-tight text-[var(--welcome-text)] sm:text-5xl lg:text-6xl">
               Una mejor forma de atender a tus clientes.
             </h1>
             <p className="mt-5 max-w-xl text-base leading-7 text-[var(--welcome-secondary)] sm:text-lg">
@@ -95,7 +95,7 @@ export function WelcomePage() {
               <div className="flex items-center justify-between border-b border-[var(--welcome-border)] pb-4">
                 <div>
                   <p className="text-xs font-medium tracking-[0.12em] text-[var(--welcome-secondary)]">VISTA GENERAL</p>
-                  <h2 className="mt-1 text-lg font-bold text-[var(--welcome-text)]">Centro de atención</h2>
+                  <h2 className="mt-1 text-lg font-semibold text-[var(--welcome-text)]">Centro de atención</h2>
                 </div>
                 <span className="rounded-full bg-emerald-50 px-2.5 py-1 text-xs font-semibold text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300">Demo</span>
               </div>
@@ -117,14 +117,14 @@ export function WelcomePage() {
 
         <section id="integraciones" className="py-16 sm:py-20">
           <div className="mx-auto max-w-2xl text-center">
-            <p className="text-xs font-bold uppercase tracking-[0.2em] text-[var(--welcome-accent)]">Un espacio para crecer</p>
-            <h2 className="mt-3 text-3xl font-bold tracking-tight text-[var(--welcome-text)] sm:text-4xl">Tus canales, más cerca de tu equipo.</h2>
+            <p className="text-xs font-semibold uppercase tracking-[0.08em] text-[var(--welcome-accent)]">Un espacio para crecer</p>
+            <h2 className="mt-3 text-3xl font-semibold tracking-tight text-[var(--welcome-text)] sm:text-4xl">Tus canales, más cerca de tu equipo.</h2>
             <p className="mt-4 text-[var(--welcome-secondary)]">Comienza con las integraciones actuales y amplía la operación cuando lo necesites.</p>
           </div>
           <div className="mx-auto mt-9 grid max-w-5xl gap-4 md:grid-cols-3">
             {channels.map((channel) => (
               <article id={`integracion-${channel.provider}`} key={channel.provider} className="scroll-mt-6 rounded-2xl border border-[var(--welcome-border)] bg-[var(--welcome-card)] p-5 transition hover:-translate-y-1 hover:shadow-soft">
-                <h3 className="text-base font-bold text-[var(--welcome-text)]">{channel.name}</h3>
+                <h3 className="text-base font-semibold text-[var(--welcome-text)]">{channel.name}</h3>
                 <p className="mt-1 text-sm leading-6 text-[var(--welcome-secondary)]">{channel.detail}</p>
               </article>
             ))}

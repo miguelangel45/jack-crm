@@ -41,7 +41,7 @@ export default function IntegrationsPage() {
         <SiteNav />
         <header className="mb-6">
           <p className="text-sm font-medium uppercase tracking-[0.18em] text-brand-600">Integraciones</p>
-          <h1 className="mt-2 text-3xl font-bold text-slate-900">Canales conectados</h1>
+          <h1 className="mt-2 text-3xl font-semibold text-slate-900">Canales conectados</h1>
         </header>
         <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
           {connections.map((connection) => (

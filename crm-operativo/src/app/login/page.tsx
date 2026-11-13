@@ -53,7 +53,7 @@ export default function LoginPage() {
     return (
       <main className="flex min-h-screen items-center justify-center px-4 py-12">
         <div className="w-full max-w-lg rounded-3xl border border-slate-200 bg-white p-8 text-center shadow-soft">
-          <h1 className="text-3xl font-bold text-slate-900">Explora el CRM</h1>
+          <h1 className="text-3xl font-semibold text-slate-900">Explora el CRM</h1>
           <p className="mt-4 text-sm leading-6 text-slate-600">Esta versión pública utiliza datos de ejemplo. El acceso con credenciales y las integraciones necesitan un servidor.</p>
           <Link href="/dashboard" className="mt-6 inline-flex rounded-xl bg-slate-900 px-5 py-3 text-sm font-semibold text-white">Abrir la demostración</Link>
         </div>
@@ -69,8 +69,8 @@ export default function LoginPage() {
       <div className="w-full max-w-2xl rounded-3xl border border-slate-200 bg-white p-8 shadow-soft">
         <div className="grid gap-6 md:grid-cols-[1.05fr_0.95fr]">
           <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-brand-600">CRM</p>
-            <h1 className="mt-3 text-3xl font-bold text-slate-900">Inicia sesión</h1>
+            <p className="text-xs font-semibold uppercase tracking-[0.08em] text-brand-600">CRM</p>
+            <h1 className="mt-3 text-3xl font-semibold text-slate-900">Inicia sesión</h1>
             <p className="mt-2 text-sm text-slate-600">Accede con tu cuenta según el rol del administrador.</p>
 
             <form onSubmit={handleSubmit} className="mt-6 space-y-4">

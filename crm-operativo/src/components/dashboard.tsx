@@ -37,6 +37,17 @@ function mapTicketToClaim(ticket: ApiTicket): Claim {
   };
 }
 
+function getMetricProgress(value: string, target: string) {
+  const actualValue = Number.parseFloat(value.replace(/[^0-9.]/g, ""));
+  if (!Number.isFinite(actualValue)) return 0;
+  if (value.includes("%")) return Math.min(actualValue, 100);
+
+  const targetValue = Number.parseFloat(target.replace(/[^0-9.]/g, ""));
+  if (!Number.isFinite(targetValue) || targetValue <= 0) return 0;
+
+  return Math.min((actualValue / targetValue) * 100, 100);
+}
+
 function downloadCsv(filename: string, rows: string[][]) {
   const csvContent = rows.map((row) => row.map((value) => `"${String(value).replace(/"/g, '""')}"`).join(",")).join("\n");
   const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
@@ -108,8 +119,8 @@ export function Dashboard() {
       <SiteNav />
       <header className="mb-8 flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
         <div>
-          <p className="text-sm font-medium uppercase tracking-[0.18em] text-brand-600">CRM operativo</p>
-          <h1 className="mt-2 text-3xl font-bold text-slate-900">Panel de atención y servicio</h1>
+          <p className="text-sm font-medium uppercase tracking-[0.08em] text-brand-600">CRM operativo</p>
+          <h1 className="mt-2 text-3xl font-semibold text-slate-900">Panel de atención y servicio</h1>
         </div>
         <div className="flex items-center gap-3">
           <div className="rounded-full border border-emerald-200 bg-emerald-50 px-4 py-2 text-sm font-medium text-emerald-700">
@@ -188,9 +199,7 @@ export function Dashboard() {
           <h2 className="mb-5 text-xl font-semibold text-slate-900">Métricas de servicio</h2>
           <div className="space-y-4">
             {serviceMetrics.map((metric) => {
-              const targetValue = Number.parseFloat(metric.target.replace(/[^0-9.]/g, ""));
-              const metricValue = Number.parseFloat(metric.value.replace(/[^0-9.]/g, ""));
-              const width = Number.isFinite(targetValue) && targetValue > 0 ? Math.min((metricValue / targetValue) * 100, 100) : 0;
+              const progress = getMetricProgress(metric.value, metric.target);
 
               return (
                 <div key={metric.name} className="rounded-2xl border border-slate-200 bg-slate-50 p-3">
@@ -198,8 +207,8 @@ export function Dashboard() {
                     <span className="text-slate-600">{metric.name}</span>
                     <span className="font-semibold text-slate-800">{metric.value}</span>
                   </div>
-                  <div className="h-2 overflow-hidden rounded-full bg-slate-200">
-                    <div className="h-full rounded-full bg-brand-500" style={{ width: `${width}%` }} />
+                  <div className="metric-progress-track h-2 overflow-hidden rounded-full">
+                    <div className="metric-progress-fill h-full rounded-full" style={{ width: `${progress}%` }} />
                   </div>
                   <div className="mt-2 text-xs text-slate-500">Objetivo: {metric.target}</div>
                 </div>

@@ -69,8 +69,8 @@ export function KpiDashboard() {
       <SiteNav />
       <header className="mb-8 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
         <div>
-          <p className="text-sm font-medium uppercase tracking-[0.18em] text-brand-600">Indicadores de gestión</p>
-          <h1 className="mt-2 text-3xl font-bold text-slate-900">KPI</h1>
+          <p className="text-sm font-medium uppercase tracking-[0.08em] text-brand-600">Indicadores de gestión</p>
+          <h1 className="mt-2 text-3xl font-semibold text-slate-900">KPI</h1>
           <p className="mt-2 max-w-2xl text-sm text-slate-600">
             Vista de referencia para dar seguimiento al desempeño de la operación.
           </p>
@@ -86,7 +86,7 @@ export function KpiDashboard() {
           <article key={indicator.category} className="panel flex flex-col">
             <div className="flex items-start justify-between gap-3">
               <div>
-                <p className="text-xs font-semibold uppercase tracking-[0.16em] text-brand-600">{indicator.category}</p>
+                <p className="text-xs font-semibold uppercase tracking-[0.08em] text-brand-600">{indicator.category}</p>
                 <h2 className="mt-2 text-base font-semibold text-slate-900">{indicator.title}</h2>
               </div>
               <span className="rounded-full bg-[var(--accent-soft)] px-2.5 py-1 text-xs font-semibold text-slate-700 dark:text-slate-200">
@@ -106,9 +106,9 @@ export function KpiDashboard() {
                 aria-valuemin={0}
                 aria-valuemax={100}
                 aria-valuenow={indicator.progress}
-                className="h-2 overflow-hidden rounded-full bg-slate-200"
+                className="metric-progress-track h-2 overflow-hidden rounded-full"
               >
-                <div className="h-full rounded-full bg-brand-500" style={{ width: `${indicator.progress}%` }} />
+                <div className="metric-progress-fill h-full rounded-full" style={{ width: `${indicator.progress}%` }} />
               </div>
               <p className="mt-2 text-xs text-slate-500">{indicator.target}</p>
             </div>

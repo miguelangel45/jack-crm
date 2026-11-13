@@ -41,7 +41,7 @@ export default function InboxPage() {
         <SiteNav />
         <header className="mb-6">
           <p className="text-sm font-medium uppercase tracking-[0.18em] text-brand-600">Inbox</p>
-          <h1 className="mt-2 text-3xl font-bold text-slate-900">Conversaciones activas</h1>
+          <h1 className="mt-2 text-3xl font-semibold text-slate-900">Conversaciones activas</h1>
         </header>
         <section className="space-y-4">
           {conversations.map((conversation) => (
