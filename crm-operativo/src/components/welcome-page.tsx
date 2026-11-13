@@ -3,42 +3,11 @@ import { ThemeToggle } from "@/components/theme-toggle";
 import type { Provider } from "@/domain/integrations";
 import { isPagesDemo } from "@/lib/pages-demo";
 
-const channels: { provider: Provider; name: string; detail: string; icon: "facebook" | "instagram" | "mercadolibre" }[] = [
-  { provider: "facebook", name: "Facebook", detail: "Mensajes y atención desde tus páginas", icon: "facebook" },
-  { provider: "instagram", name: "Instagram", detail: "Conversaciones y consultas de clientes", icon: "instagram" },
-  { provider: "mercadolibre", name: "Mercado Libre", detail: "Preguntas, ventas y seguimiento", icon: "mercadolibre" },
+const channels: { provider: Provider; name: string; detail: string }[] = [
+  { provider: "facebook", name: "Facebook", detail: "Mensajes y atención desde tus páginas" },
+  { provider: "instagram", name: "Instagram", detail: "Conversaciones y consultas de clientes" },
+  { provider: "mercadolibre", name: "Mercado Libre", detail: "Preguntas, ventas y seguimiento" },
 ];
-
-function ChannelIcon({ icon, className = "h-10 w-10" }: { icon: (typeof channels)[number]["icon"]; className?: string }) {
-  if (icon === "facebook") {
-    return (
-      <svg viewBox="0 0 40 40" aria-hidden="true" className={className}>
-        <rect width="40" height="40" rx="13" fill="#1877F2" />
-        <path fill="white" d="M23.1 33V21.8h3.8l.6-4.4h-4.4v-2.8c0-1.3.4-2.2 2.2-2.2h2.4V8.5c-.4-.1-1.9-.2-3.6-.2-3.6 0-6.1 2.2-6.1 6.3v2.8h-4.1v4.4H18V33h5.1Z" />
-      </svg>
-    );
-  }
-
-  if (icon === "instagram") {
-    return (
-      <svg viewBox="0 0 40 40" aria-hidden="true" className={className}>
-        <defs><linearGradient id="instagram-gradient" x1="5" y1="36" x2="35" y2="4" gradientUnits="userSpaceOnUse"><stop stopColor="#FFB800" /><stop offset=".48" stopColor="#F03A8A" /><stop offset="1" stopColor="#7048E8" /></linearGradient></defs>
-        <rect width="40" height="40" rx="13" fill="url(#instagram-gradient)" />
-        <rect x="9" y="9" width="22" height="22" rx="7" fill="none" stroke="white" strokeWidth="2.2" />
-        <circle cx="20" cy="20" r="5" fill="none" stroke="white" strokeWidth="2.2" />
-        <circle cx="27" cy="13.5" r="1.5" fill="white" />
-      </svg>
-    );
-  }
-
-  return (
-    <svg viewBox="0 0 40 40" aria-hidden="true" className={className}>
-      <rect width="40" height="40" rx="13" fill="#FFE600" />
-      <path d="M7.5 18.4c0-5.3 5.6-9.6 12.5-9.6s12.5 4.3 12.5 9.6c0 5.3-5.6 9.6-12.5 9.6-1.5 0-3-.2-4.3-.6l-5.2 2.4 1.3-5c-2.7-1.7-4.3-3.9-4.3-6.4Z" fill="#fff" stroke="#2d3277" strokeWidth="1.4" />
-      <path d="M13 18h14M14.5 22h11" stroke="#2d3277" strokeWidth="2" strokeLinecap="round" />
-    </svg>
-  );
-}
 
 export function WelcomePage() {
   return (
@@ -52,7 +21,7 @@ export function WelcomePage() {
                 <path d="M8 18v-4m8 4v-4" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" />
               </svg>
             </span>
-            <span>
+            <span className="welcome-brand-copy block">
               <span className="block text-sm font-bold tracking-[0.16em] text-[var(--welcome-text)]">CRM</span>
               <span className="block text-xs text-[var(--welcome-secondary)]">Atención unificada</span>
             </span>
@@ -77,7 +46,6 @@ export function WelcomePage() {
                           href={`#integracion-${channel.provider}`}
                           className="flex items-center gap-3 rounded-xl p-3 transition hover:bg-[var(--welcome-muted)] focus-visible:bg-[var(--welcome-muted)] focus-visible:outline-none"
                         >
-                          <ChannelIcon icon={channel.icon} className="h-8 w-8 shrink-0" />
                           <span className="min-w-0">
                             <span className="block text-sm font-semibold text-[var(--welcome-text)]">{channel.name}</span>
                             <span className="block truncate text-xs text-[var(--welcome-secondary)]">{channel.detail}</span>
@@ -96,9 +64,7 @@ export function WelcomePage() {
           </div>
         </header>
 
-        <section className="relative mt-10 grid items-center gap-12 rounded-[2rem] border border-[var(--welcome-border)] bg-[var(--welcome-card)] px-6 py-10 shadow-soft backdrop-blur sm:px-10 sm:py-14 lg:grid-cols-[1.05fr_0.95fr] lg:px-14 lg:py-16">
-          <div className="pointer-events-none absolute -right-24 -top-28 h-72 w-72 rounded-full bg-[var(--welcome-glow)] blur-3xl" />
-          <div className="pointer-events-none absolute -bottom-32 left-1/3 h-64 w-64 rounded-full bg-[var(--welcome-glow)] blur-3xl" />
+        <section className="welcome-hero relative mt-10 grid items-center gap-12 rounded-[2rem] border px-6 py-10 shadow-soft sm:px-10 sm:py-14 lg:grid-cols-[1.05fr_0.95fr] lg:px-14 lg:py-16">
           <div className="relative z-10">
             <div className="inline-flex items-center gap-2 rounded-full border border-[var(--welcome-border)] bg-[var(--welcome-muted)] px-3 py-1.5 text-xs font-semibold text-[var(--welcome-secondary)]">
               <span className="h-2 w-2 rounded-full bg-[var(--welcome-champagne)]" />
@@ -115,23 +81,17 @@ export function WelcomePage() {
                 {isPagesDemo ? "Explorar demo" : "Acceder al CRM"}
                 <svg viewBox="0 0 20 20" className="h-4 w-4" fill="none" aria-hidden="true"><path d="M4 10h12m-5-5 5 5-5 5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" /></svg>
               </Link>
-              <a href="#integraciones" className="inline-flex min-h-12 items-center justify-center rounded-xl border border-[var(--welcome-border)] bg-[var(--welcome-card)] px-5 py-3 text-sm font-semibold text-[var(--welcome-secondary)] transition hover:bg-[var(--welcome-muted)]">
+              <a href="#integraciones" className="inline-flex min-h-12 items-center justify-center rounded-xl border border-[var(--welcome-border)] bg-[var(--welcome-muted)] px-5 py-3 text-sm font-semibold text-[var(--welcome-secondary)] transition hover:brightness-110">
                 Conocer los canales
               </a>
             </div>
             <div className="mt-8 flex items-center gap-3 text-sm text-[var(--welcome-secondary)]">
-              <div className="flex -space-x-2" aria-hidden="true">
-                <span className="grid h-8 w-8 place-items-center rounded-full border-2 border-[var(--welcome-card)] bg-[var(--welcome-muted)] text-xs font-bold text-[var(--welcome-text)]">F</span>
-                <span className="grid h-8 w-8 place-items-center rounded-full border-2 border-[var(--welcome-card)] bg-[var(--welcome-muted)] text-xs font-bold text-[var(--welcome-text)]">I</span>
-                <span className="grid h-8 w-8 place-items-center rounded-full border-2 border-[var(--welcome-card)] bg-[var(--welcome-muted)] text-xs font-bold text-[var(--welcome-text)]">M</span>
-              </div>
               <span>Canales actuales y más integraciones en camino</span>
             </div>
           </div>
 
           <div className="relative z-10 mx-auto w-full max-w-md">
-            <div className="absolute -inset-4 rounded-[2rem] bg-[var(--welcome-glow)] blur-xl" />
-            <div className="relative rounded-3xl border border-[var(--welcome-border)] bg-[var(--welcome-card)] p-5 shadow-[var(--welcome-shadow)] sm:p-6">
+            <div className="welcome-overview relative rounded-3xl border p-5 shadow-[var(--welcome-shadow)] sm:p-6">
               <div className="flex items-center justify-between border-b border-[var(--welcome-border)] pb-4">
                 <div>
                   <p className="text-xs font-medium tracking-[0.12em] text-[var(--welcome-secondary)]">VISTA GENERAL</p>
@@ -164,8 +124,7 @@ export function WelcomePage() {
           <div className="mx-auto mt-9 grid max-w-5xl gap-4 md:grid-cols-3">
             {channels.map((channel) => (
               <article id={`integracion-${channel.provider}`} key={channel.provider} className="scroll-mt-6 rounded-2xl border border-[var(--welcome-border)] bg-[var(--welcome-card)] p-5 transition hover:-translate-y-1 hover:shadow-soft">
-                <ChannelIcon icon={channel.icon} />
-                <h3 className="mt-4 text-base font-bold text-[var(--welcome-text)]">{channel.name}</h3>
+                <h3 className="text-base font-bold text-[var(--welcome-text)]">{channel.name}</h3>
                 <p className="mt-1 text-sm leading-6 text-[var(--welcome-secondary)]">{channel.detail}</p>
               </article>
             ))}

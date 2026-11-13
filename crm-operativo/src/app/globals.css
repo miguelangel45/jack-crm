@@ -5,15 +5,16 @@
 :root {
   color-scheme: light;
   --crm-sidebar-width: 264px;
-  --background: #f7f8fa;
+  --background: #eef1f6;
   --foreground: #17243a;
   --surface: #ffffff;
-  --surface-muted: #eef1f5;
+  --surface-muted: #f2f4f7;
   --border: #dce2e9;
   --text-primary: #17243a;
   --text-secondary: #596579;
   --text-muted: #596579;
   --accent: #17243a;
+  --accent-foreground: #ffffff;
   --accent-soft: #e9edf3;
   --champagne: #c6aa78;
 }
@@ -28,8 +29,9 @@ html.dark {
   --text-primary: #f7f8fa;
   --text-secondary: #c1c9d6;
   --text-muted: #c1c9d6;
-  --accent: #dce5f2;
-  --accent-soft: #26344a;
+  --accent: #c6aa78;
+  --accent-foreground: #17243a;
+  --accent-soft: rgb(198 170 120 / 14%);
 }
 
 html {
@@ -50,7 +52,7 @@ body {
 }
 
 .welcome-page {
-  --welcome-background: #f7f8fa;
+  --welcome-background: #eef1f6;
   --welcome-card: #ffffff;
   --welcome-text: #17243a;
   --welcome-secondary: #596579;
@@ -58,10 +60,9 @@ body {
   --welcome-accent-foreground: #ffffff;
   --welcome-logo-background: #17243a;
   --welcome-champagne: #c6aa78;
-  --welcome-muted: #eef1f5;
+  --welcome-muted: #f2f4f7;
   --welcome-border: #dce2e9;
-  --welcome-glow: rgb(198 170 120 / 12%);
-  --welcome-shadow: 0 24px 70px -32px rgb(23 36 58 / 16%);
+  --welcome-shadow: 0 8px 24px rgb(23 36 58 / 8%);
   background-color: var(--welcome-background);
   color: var(--welcome-text);
   transition: background-color 180ms ease, color 180ms ease;
@@ -77,8 +78,48 @@ body {
   --welcome-logo-background: #17243a;
   --welcome-muted: #202d42;
   --welcome-border: #36445a;
-  --welcome-glow: rgb(198 170 120 / 10%);
   --welcome-shadow: 0 24px 70px -32px rgb(3 8 18 / 42%);
+}
+
+.welcome-brand-copy::after {
+  display: block;
+  height: 2px;
+  margin-top: 5px;
+  border-radius: 9999px;
+  background: var(--welcome-champagne);
+  content: "";
+}
+
+.welcome-hero {
+  --welcome-text: #ffffff;
+  --welcome-secondary: #d7deea;
+  --welcome-card: transparent;
+  --welcome-muted: #26354b;
+  --welcome-accent: #ffffff;
+  --welcome-accent-foreground: #17243a;
+  --welcome-border: rgb(198 170 120 / 55%);
+  border-color: var(--welcome-border);
+  background-color: #17243a;
+}
+
+.welcome-overview {
+  --welcome-text: #17243a;
+  --welcome-secondary: #596579;
+  --welcome-card: #ffffff;
+  --welcome-muted: #eef1f5;
+  --welcome-accent: #17243a;
+  --welcome-border: #c6aa78;
+  background-color: var(--welcome-card);
+  border-color: var(--welcome-border);
+}
+
+html.dark .welcome-overview {
+  --welcome-text: #f7f8fa;
+  --welcome-secondary: #c1c9d6;
+  --welcome-card: #1b263b;
+  --welcome-muted: #202d42;
+  --welcome-accent: #dce5f2;
+  background-color: var(--welcome-card);
 }
 
 .welcome-page h1,
@@ -139,7 +180,7 @@ body {
   place-items: center;
   border-radius: 12px;
   background: var(--accent);
-  color: #fff;
+  color: var(--accent-foreground);
   font-size: 19px;
   font-weight: 700;
   text-decoration: none;
@@ -339,8 +380,8 @@ body {
 }
 
 .crm-logout:hover {
-  background: #fff1f2;
-  color: #be123c;
+  background: var(--accent-soft);
+  color: var(--accent);
 }
 
 .crm-sidebar.is-collapsed .crm-account,
@@ -365,7 +406,7 @@ body {
 
   .panel:hover {
     transform: translateY(-2px);
-    box-shadow: 0 16px 36px rgb(15 23 42 / 14%);
+    box-shadow: 0 16px 36px rgb(23 36 58 / 8%);
   }
 
   .metric-card {
@@ -410,11 +451,11 @@ html.dark .bg-emerald-100 {
 }
 
 html.dark .bg-amber-100 {
-  background-color: #393445;
+  background-color: rgb(198 170 120 / 16%);
 }
 
 html.dark .bg-orange-100 {
-  background-color: #393445;
+  background-color: rgb(198 170 120 / 16%);
 }
 
 html.dark .bg-rose-100 {
@@ -472,8 +513,8 @@ html.dark .crm-nav-link.is-active {
 }
 
 html.dark .crm-logout:hover {
-  background: #4c0519;
-  color: #fda4af;
+  background: var(--accent-soft);
+  color: var(--accent);
 }
 
 html.dark .panel:hover {
@@ -508,6 +549,11 @@ html.dark .panel:hover {
 
 .crm-main .bg-slate-900 {
   background-color: var(--accent);
+  color: var(--accent-foreground);
+}
+
+.crm-main .bg-brand-500 {
+  background-color: var(--accent);
 }
 
 .crm-main .bg-brand-50,
@@ -518,7 +564,7 @@ html.dark .panel:hover {
 
 .crm-main .bg-amber-100,
 .crm-main .bg-orange-100 {
-  background-color: #f3efe7;
+  background-color: rgb(198 170 120 / 18%);
 }
 
 .crm-main .bg-amber-500,
@@ -528,7 +574,7 @@ html.dark .panel:hover {
 
 .crm-main .text-amber-700,
 .crm-main .text-orange-700 {
-  color: #786545;
+  color: #17243a;
 }
 
 .crm-main .border-slate-100,
@@ -539,7 +585,7 @@ html.dark .panel:hover {
 
 html.dark .crm-main .bg-amber-100,
 html.dark .crm-main .bg-orange-100 {
-  background-color: #393445;
+  background-color: rgb(198 170 120 / 16%);
 }
 
 html.dark .crm-main .text-amber-700,
