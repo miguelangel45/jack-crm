@@ -18,7 +18,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
       </head>
       <body className="antialiased">
         {isPagesDemo && (
-          <div className="bg-blue-950 px-4 py-2 text-center text-xs font-medium text-white">
+          <div className="bg-[var(--accent)] px-4 py-2 text-center text-xs font-medium text-white">
             Vista pública de demostración · Datos de ejemplo · Las funciones de servidor no están disponibles aquí
             {process.env.NEXT_PUBLIC_SOURCE_SHA && (
               <a className="ml-2 underline" href={`https://github.com/miguelangel45/jack-crm/commit/${process.env.NEXT_PUBLIC_SOURCE_SHA}`}>

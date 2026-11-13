@@ -46,7 +46,7 @@ export function WelcomePage() {
       <div className="mx-auto max-w-7xl px-5 pb-16 pt-5 sm:px-8 lg:px-10">
         <header className="flex items-center justify-between gap-4">
           <Link href="/" className="flex items-center gap-3 rounded-xl" aria-label="Inicio CRM">
-            <span className="grid h-11 w-11 place-items-center rounded-2xl bg-[var(--welcome-accent)] text-white shadow-soft">
+            <span className="grid h-11 w-11 place-items-center rounded-2xl bg-[var(--welcome-logo-background)] text-white shadow-soft">
               <svg viewBox="0 0 24 24" className="h-6 w-6" fill="none" aria-hidden="true">
                 <path d="M4 18V6l8 7 8-7v12" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
                 <path d="M8 18v-4m8 4v-4" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" />
@@ -100,21 +100,18 @@ export function WelcomePage() {
           <div className="pointer-events-none absolute -right-24 -top-28 h-72 w-72 rounded-full bg-[var(--welcome-glow)] blur-3xl" />
           <div className="pointer-events-none absolute -bottom-32 left-1/3 h-64 w-64 rounded-full bg-[var(--welcome-glow)] blur-3xl" />
           <div className="relative z-10">
-            <div className="inline-flex items-center gap-2 rounded-full border border-[var(--welcome-border)] bg-[var(--welcome-muted)] px-3 py-1.5 text-xs font-semibold text-[var(--welcome-accent)]">
-              <span className="h-2 w-2 rounded-full bg-[var(--welcome-accent)]" />
+            <div className="inline-flex items-center gap-2 rounded-full border border-[var(--welcome-border)] bg-[var(--welcome-muted)] px-3 py-1.5 text-xs font-semibold text-[var(--welcome-secondary)]">
+              <span className="h-2 w-2 rounded-full bg-[var(--welcome-champagne)]" />
               Tu operación, en un solo lugar
             </div>
             <h1 className="mt-6 max-w-2xl text-4xl font-bold leading-[1.08] tracking-tight text-[var(--welcome-text)] sm:text-5xl lg:text-6xl">
               Una mejor forma de atender a tus clientes.
-              <span className="ml-3 inline-flex translate-y-[-0.2em] items-center rounded-full border border-[var(--welcome-border)] bg-[var(--welcome-muted)] px-3 py-1 text-sm font-semibold tracking-normal text-[var(--welcome-accent)]">
-                Con IA
-              </span>
             </h1>
             <p className="mt-5 max-w-xl text-base leading-7 text-[var(--welcome-secondary)] sm:text-lg">
               Reúne conversaciones, reclamaciones y métricas de servicio en una experiencia clara para todo tu equipo.
             </p>
             <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-              <Link href={isPagesDemo ? "/dashboard" : "/login"} className="inline-flex min-h-12 items-center justify-center gap-2 rounded-xl bg-[var(--welcome-accent)] px-5 py-3 text-sm font-semibold text-white shadow-lg shadow-[var(--welcome-shadow)] transition hover:-translate-y-0.5 hover:brightness-95">
+              <Link href={isPagesDemo ? "/dashboard" : "/login"} className="inline-flex min-h-12 items-center justify-center gap-2 rounded-xl bg-[var(--welcome-accent)] px-5 py-3 text-sm font-semibold text-[var(--welcome-accent-foreground)] shadow-lg shadow-[var(--welcome-shadow)] transition hover:-translate-y-0.5 hover:brightness-95">
                 {isPagesDemo ? "Explorar demo" : "Acceder al CRM"}
                 <svg viewBox="0 0 20 20" className="h-4 w-4" fill="none" aria-hidden="true"><path d="M4 10h12m-5-5 5 5-5 5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" /></svg>
               </Link>
@@ -124,9 +121,9 @@ export function WelcomePage() {
             </div>
             <div className="mt-8 flex items-center gap-3 text-sm text-[var(--welcome-secondary)]">
               <div className="flex -space-x-2" aria-hidden="true">
-                <span className="grid h-8 w-8 place-items-center rounded-full border-2 border-white bg-blue-100 text-xs font-bold text-blue-700 dark:border-slate-900 dark:bg-blue-900 dark:text-blue-200">F</span>
-                <span className="grid h-8 w-8 place-items-center rounded-full border-2 border-white bg-pink-100 text-xs font-bold text-pink-700 dark:border-slate-900 dark:bg-pink-900 dark:text-pink-200">I</span>
-                <span className="grid h-8 w-8 place-items-center rounded-full border-2 border-white bg-yellow-100 text-xs font-bold text-slate-800 dark:border-slate-900 dark:bg-yellow-800 dark:text-yellow-100">M</span>
+                <span className="grid h-8 w-8 place-items-center rounded-full border-2 border-[var(--welcome-card)] bg-[var(--welcome-muted)] text-xs font-bold text-[var(--welcome-text)]">F</span>
+                <span className="grid h-8 w-8 place-items-center rounded-full border-2 border-[var(--welcome-card)] bg-[var(--welcome-muted)] text-xs font-bold text-[var(--welcome-text)]">I</span>
+                <span className="grid h-8 w-8 place-items-center rounded-full border-2 border-[var(--welcome-card)] bg-[var(--welcome-muted)] text-xs font-bold text-[var(--welcome-text)]">M</span>
               </div>
               <span>Canales actuales y más integraciones en camino</span>
             </div>
@@ -137,7 +134,7 @@ export function WelcomePage() {
             <div className="relative rounded-3xl border border-[var(--welcome-border)] bg-[var(--welcome-card)] p-5 shadow-[var(--welcome-shadow)] sm:p-6">
               <div className="flex items-center justify-between border-b border-[var(--welcome-border)] pb-4">
                 <div>
-                  <p className="text-xs font-medium text-[var(--welcome-secondary)]">VISTA GENERAL</p>
+                  <p className="text-xs font-medium tracking-[0.12em] text-[var(--welcome-secondary)]">VISTA GENERAL</p>
                   <h2 className="mt-1 text-lg font-bold text-[var(--welcome-text)]">Centro de atención</h2>
                 </div>
                 <span className="rounded-full bg-emerald-50 px-2.5 py-1 text-xs font-semibold text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300">Demo</span>
@@ -145,12 +142,12 @@ export function WelcomePage() {
               <div className="mt-5 grid grid-cols-2 gap-3">
                 <div className="rounded-2xl bg-[var(--welcome-muted)] p-3">
                   <p className="text-[11px] text-[var(--welcome-secondary)]">Conversaciones</p>
-                  <p className="mt-2 text-lg font-bold text-[var(--welcome-text)]">Inbox</p>
+                  <p className="mt-2 text-lg font-semibold text-[var(--welcome-accent)]">Inbox</p>
                   <p className="mt-1 text-xs leading-4 text-[var(--welcome-secondary)]">Atención centralizada</p>
                 </div>
                 <div className="rounded-2xl border border-[var(--welcome-border)] bg-[var(--welcome-card)] p-3">
                   <p className="text-[11px] text-[var(--welcome-secondary)]">Seguimiento</p>
-                  <p className="mt-2 text-lg font-bold text-[var(--welcome-text)]">Tickets</p>
+                  <p className="mt-2 text-lg font-semibold text-[var(--welcome-accent)]">Tickets</p>
                   <p className="mt-1 text-xs leading-4 text-[var(--welcome-secondary)]">Casos organizados</p>
                 </div>
               </div>

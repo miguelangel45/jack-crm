@@ -5,26 +5,31 @@
 :root {
   color-scheme: light;
   --crm-sidebar-width: 264px;
-  --background: #f4f6f9;
-  --foreground: #0f172a;
+  --background: #f7f8fa;
+  --foreground: #17243a;
   --surface: #ffffff;
-  --surface-muted: #f8fafc;
-  --border: #e2e8f0;
-  --text-primary: #0f172a;
-  --text-secondary: #475569;
-  --text-muted: #64748b;
+  --surface-muted: #eef1f5;
+  --border: #dce2e9;
+  --text-primary: #17243a;
+  --text-secondary: #596579;
+  --text-muted: #596579;
+  --accent: #17243a;
+  --accent-soft: #e9edf3;
+  --champagne: #c6aa78;
 }
 
 html.dark {
   color-scheme: dark;
-  --background: #0b1220;
-  --foreground: #e2e8f0;
-  --surface: #111827;
-  --surface-muted: #1f2937;
-  --border: #334155;
-  --text-primary: #f1f5f9;
-  --text-secondary: #cbd5e1;
-  --text-muted: #94a3b8;
+  --background: #111827;
+  --foreground: #f7f8fa;
+  --surface: #1b263b;
+  --surface-muted: #202d42;
+  --border: #36445a;
+  --text-primary: #f7f8fa;
+  --text-secondary: #c1c9d6;
+  --text-muted: #c1c9d6;
+  --accent: #dce5f2;
+  --accent-soft: #26344a;
 }
 
 html {
@@ -45,32 +50,41 @@ body {
 }
 
 .welcome-page {
-  --welcome-background: #fff8f0;
+  --welcome-background: #f7f8fa;
   --welcome-card: #ffffff;
-  --welcome-text: #2b2d42;
-  --welcome-secondary: #68687a;
-  --welcome-accent: #e5533a;
-  --welcome-accent-soft: #fde9e3;
-  --welcome-muted: #fff0e6;
-  --welcome-border: #eadfd5;
-  --welcome-glow: rgb(229 83 58 / 12%);
-  --welcome-shadow: 0 24px 70px -32px rgb(43 45 66 / 18%);
+  --welcome-text: #17243a;
+  --welcome-secondary: #596579;
+  --welcome-accent: #17243a;
+  --welcome-accent-foreground: #ffffff;
+  --welcome-logo-background: #17243a;
+  --welcome-champagne: #c6aa78;
+  --welcome-muted: #eef1f5;
+  --welcome-border: #dce2e9;
+  --welcome-glow: rgb(198 170 120 / 12%);
+  --welcome-shadow: 0 24px 70px -32px rgb(23 36 58 / 16%);
   background-color: var(--welcome-background);
   color: var(--welcome-text);
   transition: background-color 180ms ease, color 180ms ease;
 }
 
 .dark .welcome-page {
-  --welcome-background: #1e1b2e;
-  --welcome-card: #2a2640;
-  --welcome-text: #f5f1ff;
-  --welcome-secondary: #c4c0d4;
-  --welcome-accent: #ff7a5c;
-  --welcome-accent-soft: #413047;
-  --welcome-muted: #36314f;
-  --welcome-border: #49435f;
-  --welcome-glow: rgb(255 122 92 / 11%);
-  --welcome-shadow: 0 24px 70px -32px rgb(8 7 18 / 38%);
+  --welcome-background: #111827;
+  --welcome-card: #1b263b;
+  --welcome-text: #f7f8fa;
+  --welcome-secondary: #c1c9d6;
+  --welcome-accent: #dce5f2;
+  --welcome-accent-foreground: #17243a;
+  --welcome-logo-background: #17243a;
+  --welcome-muted: #202d42;
+  --welcome-border: #36445a;
+  --welcome-glow: rgb(198 170 120 / 10%);
+  --welcome-shadow: 0 24px 70px -32px rgb(3 8 18 / 42%);
+}
+
+.welcome-page h1,
+.welcome-page h2,
+.welcome-page h3 {
+  font-weight: 600;
 }
 
 .welcome-page .theme-toggle {
@@ -124,7 +138,7 @@ body {
   flex: 0 0 auto;
   place-items: center;
   border-radius: 12px;
-  background: #0f172a;
+  background: var(--accent);
   color: #fff;
   font-size: 19px;
   font-weight: 700;
@@ -199,7 +213,7 @@ body {
   height: 7px;
   flex: 0 0 auto;
   border-radius: 50%;
-  background: #2563eb;
+  background: var(--accent);
 }
 
 .crm-sidebar-nav {
@@ -243,8 +257,8 @@ body {
 }
 
 .crm-nav-link.is-active {
-  background: #eff6ff;
-  color: #1d4ed8;
+  background: var(--accent-soft);
+  color: var(--accent);
   font-weight: 650;
 }
 
@@ -381,13 +395,13 @@ html.dark .bg-slate-100 {
 }
 
 html.dark .bg-slate-200 {
-  background-color: #334155;
+  background-color: var(--border);
 }
 
 html.dark .bg-brand-50,
 html.dark .bg-blue-50,
 html.dark .bg-blue-100 {
-  background-color: #1e3a8a;
+  background-color: var(--accent-soft);
 }
 
 html.dark .bg-emerald-50,
@@ -396,20 +410,21 @@ html.dark .bg-emerald-100 {
 }
 
 html.dark .bg-amber-100 {
-  background-color: #78350f;
+  background-color: #393445;
 }
 
 html.dark .bg-orange-100 {
-  background-color: #7c2d12;
+  background-color: #393445;
 }
 
 html.dark .bg-rose-100 {
   background-color: #881337;
 }
 
+html.dark .text-brand-600,
 html.dark .text-brand-700,
 html.dark .text-blue-700 {
-  color: #bfdbfe;
+  color: var(--accent);
 }
 
 html.dark .text-emerald-700 {
@@ -417,11 +432,11 @@ html.dark .text-emerald-700 {
 }
 
 html.dark .text-amber-700 {
-  color: #fde68a;
+  color: var(--champagne);
 }
 
 html.dark .text-orange-700 {
-  color: #fed7aa;
+  color: var(--champagne);
 }
 
 html.dark .text-rose-700 {
@@ -451,13 +466,9 @@ html.dark .shadow-soft {
   box-shadow: 0 10px 30px rgb(0 0 0 / 24%);
 }
 
-html.dark .crm-brand-mark {
-  background: #2563eb;
-}
-
 html.dark .crm-nav-link.is-active {
-  background: #172554;
-  color: #bfdbfe;
+  background: var(--accent-soft);
+  color: var(--accent);
 }
 
 html.dark .crm-logout:hover {
@@ -467,6 +478,73 @@ html.dark .crm-logout:hover {
 
 html.dark .panel:hover {
   box-shadow: 0 16px 36px rgb(0 0 0 / 32%);
+}
+
+.crm-main .text-brand-600,
+.crm-main .text-brand-700,
+.crm-main .text-blue-700 {
+  color: var(--accent);
+}
+
+.crm-main .text-slate-900,
+.crm-main .text-slate-800 {
+  color: var(--text-primary);
+}
+
+.crm-main .text-slate-700,
+.crm-main .text-slate-600,
+.crm-main .text-slate-500 {
+  color: var(--text-secondary);
+}
+
+.crm-main .bg-white {
+  background-color: var(--surface);
+}
+
+.crm-main .bg-slate-50,
+.crm-main .bg-slate-100 {
+  background-color: var(--surface-muted);
+}
+
+.crm-main .bg-slate-900 {
+  background-color: var(--accent);
+}
+
+.crm-main .bg-brand-50,
+.crm-main .bg-blue-50,
+.crm-main .bg-blue-100 {
+  background-color: var(--accent-soft);
+}
+
+.crm-main .bg-amber-100,
+.crm-main .bg-orange-100 {
+  background-color: #f3efe7;
+}
+
+.crm-main .bg-amber-500,
+.crm-main .bg-orange-500 {
+  background-color: var(--champagne);
+}
+
+.crm-main .text-amber-700,
+.crm-main .text-orange-700 {
+  color: #786545;
+}
+
+.crm-main .border-slate-100,
+.crm-main .border-slate-200,
+.crm-main .divide-slate-200 > :not([hidden]) ~ :not([hidden]) {
+  border-color: var(--border);
+}
+
+html.dark .crm-main .bg-amber-100,
+html.dark .crm-main .bg-orange-100 {
+  background-color: #393445;
+}
+
+html.dark .crm-main .text-amber-700,
+html.dark .crm-main .text-orange-700 {
+  color: var(--champagne);
 }
 
 @media (max-width: 767px) {
