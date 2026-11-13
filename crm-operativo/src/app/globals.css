@@ -44,6 +44,46 @@ body {
   box-sizing: border-box;
 }
 
+.welcome-page {
+  --welcome-background: #fff8f0;
+  --welcome-card: #ffffff;
+  --welcome-text: #2b2d42;
+  --welcome-secondary: #68687a;
+  --welcome-accent: #e5533a;
+  --welcome-accent-soft: #fde9e3;
+  --welcome-muted: #fff0e6;
+  --welcome-border: #eadfd5;
+  --welcome-glow: rgb(229 83 58 / 12%);
+  --welcome-shadow: 0 24px 70px -32px rgb(43 45 66 / 18%);
+  background-color: var(--welcome-background);
+  color: var(--welcome-text);
+  transition: background-color 180ms ease, color 180ms ease;
+}
+
+.dark .welcome-page {
+  --welcome-background: #1e1b2e;
+  --welcome-card: #2a2640;
+  --welcome-text: #f5f1ff;
+  --welcome-secondary: #c4c0d4;
+  --welcome-accent: #ff7a5c;
+  --welcome-accent-soft: #413047;
+  --welcome-muted: #36314f;
+  --welcome-border: #49435f;
+  --welcome-glow: rgb(255 122 92 / 11%);
+  --welcome-shadow: 0 24px 70px -32px rgb(8 7 18 / 38%);
+}
+
+.welcome-page .theme-toggle {
+  border-color: var(--welcome-border);
+  background-color: var(--welcome-card);
+  color: var(--welcome-secondary);
+}
+
+.welcome-page .theme-toggle:hover {
+  background-color: var(--welcome-muted);
+  color: var(--welcome-text);
+}
+
 .crm-main {
   margin-left: var(--crm-sidebar-width);
   margin-right: auto;
@@ -440,6 +480,7 @@ html.dark .panel:hover {
   .crm-sidebar.is-collapsed {
     width: min(290px, calc(100vw - 48px));
     transform: translateX(-100%);
+    border-right: 0;
   }
 
   .crm-sidebar.is-mobile-open,
@@ -506,7 +547,7 @@ html.dark .panel:hover {
     inset: 0;
     display: block;
     border: 0;
-    background: rgb(15 23 42 / 42%);
+    background: rgb(15 23 42 / 24%);
   }
 }
 
