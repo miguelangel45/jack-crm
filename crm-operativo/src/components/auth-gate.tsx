@@ -10,7 +10,7 @@ export function AuthGate({
   children,
   fallback,
 }: {
-  route: "dashboard" | "inbox" | "tickets" | "integrations" | "manageIntegrations";
+  route: "dashboard" | "kpi" | "inbox" | "tickets" | "integrations" | "manageIntegrations";
   children: React.ReactNode;
   fallback?: React.ReactNode;
 }) {

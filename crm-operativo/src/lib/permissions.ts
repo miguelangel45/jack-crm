@@ -4,6 +4,7 @@ export const INACTIVITY_TIMEOUT_MS = 5 * 60 * 1000;
 
 export type RoutePermission = {
   dashboard: boolean;
+  kpi: boolean;
   inbox: boolean;
   tickets: boolean;
   integrations: boolean;
@@ -15,6 +16,7 @@ export function getRoutePermissionsForRole(role: AppRole): RoutePermission {
 
   return {
     dashboard: access.canReadDashboard,
+    kpi: access.canReadDashboard,
     inbox: access.canReadInbox,
     tickets: access.canReadTickets,
     integrations: access.canReadIntegrations,
@@ -90,7 +92,7 @@ export function triggerSessionActivity() {
   return markSessionActive();
 }
 
-export function canAccessRoute(route: keyof Pick<RoutePermission, "dashboard" | "inbox" | "tickets" | "integrations" | "manageIntegrations">, role: AppRole) {
+export function canAccessRoute(route: keyof Pick<RoutePermission, "dashboard" | "kpi" | "inbox" | "tickets" | "integrations" | "manageIntegrations">, role: AppRole) {
   const permissions = getRoutePermissionsForRole(role);
   return permissions[route] ?? false;
 }
