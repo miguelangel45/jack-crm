@@ -5,20 +5,21 @@ import { NextResponse } from "next/server";
 
 export async function GET(
   request: Request,
-  { params }: { params: { provider: string } },
+  { params }: { params: Promise<{ provider: string }> },
 ) {
   const auth = await requireRouteAccess(request, "integrations");
   if (auth.response) {
     return auth.response;
   }
 
-  const normalizedProvider = params.provider.toLowerCase() as Provider;
+  const { provider } = await params;
+  const normalizedProvider = provider.toLowerCase() as Provider;
   const connections = await listIntegrations();
   const connection = connections.find((item) => item.provider === normalizedProvider);
 
   if (!connection) {
     return NextResponse.json(
-      { ok: false, error: `Proveedor no encontrado: ${params.provider}` },
+      { ok: false, error: `Proveedor no encontrado: ${provider}` },
       { status: 404 },
     );
   }

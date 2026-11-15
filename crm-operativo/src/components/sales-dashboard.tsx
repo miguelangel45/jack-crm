@@ -1,12 +1,13 @@
 "use client";
 
-import { useEffect, useState, type FormEvent } from "react";
+import { useEffect, useRef, useState, type FormEvent } from "react";
+import { jsPDF } from "jspdf";
 import { CrmIcon, type CrmIconName } from "@/components/crm-icons";
 import { SiteNav } from "@/components/site-nav";
 import type { AppRole } from "@/lib/auth";
 import { getSessionFromStorage } from "@/lib/permissions";
 import { isPagesDemo } from "@/lib/pages-demo";
-import { demoSalesQuotes, salesSellers, type QuoteStatus } from "@/domain/sales";
+import { demoSalesQuotes, salesSellers, type QuoteStatus, type SalesQuote } from "@/domain/sales";
 
 const allSellers = "Todos los vendedores";
 
@@ -29,6 +30,43 @@ function formatInputDate(date: Date) {
   const month = String(date.getMonth() + 1).padStart(2, "0");
   const day = String(date.getDate()).padStart(2, "0");
   return `${year}-${month}-${day}`;
+}
+
+function formatCurrency(value: number) {
+  return `$ ${new Intl.NumberFormat("es-CO", { maximumFractionDigits: 0 }).format(value)}`;
+}
+
+function downloadQuotePdf(quote: SalesQuote) {
+  const document = new jsPDF();
+  document.setProperties({ title: `Cotización ${quote.id}` });
+  document.setFont("helvetica", "bold");
+  document.setFontSize(18);
+  document.text("CRM Operativo", 20, 22);
+  document.setFontSize(13);
+  document.text("COTIZACIÓN", 20, 36);
+  document.setFont("helvetica", "normal");
+  document.setFontSize(10);
+  document.text(`Número: ${quote.id}`, 20, 50);
+  document.text(`Cliente: ${quote.customer}`, 20, 60);
+  document.text(`Vendedor: ${quote.seller}`, 20, 70);
+  document.text(`Fecha: ${formatDate(quote.date)}`, 20, 80);
+  document.text(`Vigencia: ${formatDate(quote.validUntil)}`, 20, 90);
+  document.text(`Estado: ${quote.status}`, 20, 100);
+  document.setDrawColor(210, 216, 226);
+  document.line(20, 108, 190, 108);
+  document.setFont("helvetica", "bold");
+  document.text("Concepto", 20, 120);
+  document.setFont("helvetica", "normal");
+  const conceptLines = document.splitTextToSize(quote.concept, 165);
+  document.text(conceptLines, 20, 130);
+  const amountY = 138 + conceptLines.length * 6;
+  document.setFont("helvetica", "bold");
+  document.text("Valor estimado", 20, amountY);
+  document.text(formatCurrency(quote.amount), 190, amountY, { align: "right" });
+  document.setFont("helvetica", "normal");
+  document.setFontSize(9);
+  document.text("Documento de demostración. Datos y valores ficticios.", 20, amountY + 18);
+  document.save(`cotizacion-${quote.id}.pdf`);
 }
 
 function getShortcutRange(shortcut: DateShortcut): DateRange {
@@ -54,11 +92,15 @@ function getShortcutRange(shortcut: DateShortcut): DateRange {
 
 export function SalesDashboard() {
   const [selectedSeller, setSelectedSeller] = useState<string>(allSellers);
+  const [selectedStatus, setSelectedStatus] = useState<"all" | QuoteStatus>("all");
+  const [selectedQuote, setSelectedQuote] = useState<SalesQuote | null>(null);
+  const quoteDialogRef = useRef<HTMLElement>(null);
   const [role, setRole] = useState<AppRole | null>(isPagesDemo ? "admin" : null);
   const [startDate, setStartDate] = useState("2026-10-01");
   const [endDate, setEndDate] = useState("2026-11-30");
   const [reportRange, setReportRange] = useState({ start: "2026-10-01", end: "2026-11-30" });
   const [dateError, setDateError] = useState<string | null>(null);
+  const [pdfError, setPdfError] = useState<string | null>(null);
 
   useEffect(() => {
     if (isPagesDemo) return;
@@ -72,19 +114,41 @@ export function SalesDashboard() {
     }
   }, []);
 
-  const filteredQuotes = demoSalesQuotes
+  useEffect(() => {
+    if (!selectedQuote) return;
+
+    const previousOverflow = document.body.style.overflow;
+    const previouslyFocusedElement = document.activeElement instanceof HTMLElement
+      ? document.activeElement
+      : null;
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setSelectedQuote(null);
+    };
+
+    document.body.style.overflow = "hidden";
+    quoteDialogRef.current?.focus();
+    window.addEventListener("keydown", handleKeyDown);
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      window.removeEventListener("keydown", handleKeyDown);
+      previouslyFocusedElement?.focus();
+    };
+  }, [selectedQuote]);
+
+  const reportQuotes = demoSalesQuotes
     .filter((quote) => (
       ((role !== "agent" && selectedSeller === allSellers) || quote.seller === selectedSeller)
       && quote.date >= reportRange.start
       && quote.date <= reportRange.end
     ))
     .sort((first, second) => second.date.localeCompare(first.date));
+  const filteredQuotes = reportQuotes.filter((quote) => selectedStatus === "all" || quote.status === selectedStatus);
 
   const quoteCounts = {
-    total: filteredQuotes.length,
-    followUp: filteredQuotes.filter((quote) => quote.status === "En seguimiento").length,
-    completed: filteredQuotes.filter((quote) => quote.status === "Venta realizada").length,
-    rejected: filteredQuotes.filter((quote) => quote.status === "Venta rechazada").length,
+    total: reportQuotes.length,
+    followUp: reportQuotes.filter((quote) => quote.status === "En seguimiento").length,
+    completed: reportQuotes.filter((quote) => quote.status === "Venta realizada").length,
+    rejected: reportQuotes.filter((quote) => quote.status === "Venta rechazada").length,
   };
   const closedQuotes = quoteCounts.completed + quoteCounts.rejected;
   const closeRate = closedQuotes === 0 ? 0 : Math.round((quoteCounts.completed / closedQuotes) * 100);
@@ -118,6 +182,7 @@ export function SalesDashboard() {
 
     setDateError(null);
     setReportRange({ start: startDate, end: endDate });
+    setSelectedStatus("all");
   }
 
   function applyDateShortcut(shortcut: DateShortcut) {
@@ -126,6 +191,7 @@ export function SalesDashboard() {
     setStartDate(range.start);
     setEndDate(range.end);
     setReportRange(range);
+    setSelectedStatus("all");
   }
 
   if (role === null) {
@@ -139,12 +205,12 @@ export function SalesDashboard() {
 
   const tabId = selectedSeller.toLowerCase().replace(/ /g, "-");
   const sellersToShow = role === "agent" ? [selectedSeller] : [allSellers, ...salesSellers];
-  const metrics: { label: string; value: string; detail: string; icon: CrmIconName; tone: "neutral" | "follow-up" | "won" | "rejected" }[] = [
-    { label: "Cotizaciones", value: String(quoteCounts.total), detail: "En el período seleccionado", icon: "i-tickets", tone: "neutral" },
-    { label: "En seguimiento", value: String(quoteCounts.followUp), detail: "Pendientes de respuesta", icon: "i-alertas", tone: "follow-up" },
-    { label: "Ventas realizadas", value: String(quoteCounts.completed), detail: "Cotizaciones convertidas", icon: "i-panel", tone: "won" },
-    { label: "Ventas rechazadas", value: String(quoteCounts.rejected), detail: "Cotizaciones no concretadas", icon: "i-reclamaciones", tone: "rejected" },
-    { label: "Tasa de cierre", value: `${closeRate}%`, detail: `${quoteCounts.completed} de ${closedQuotes} ventas decididas`, icon: "i-kpi", tone: "neutral" },
+  const metrics: { label: string; value: string; detail: string; icon: CrmIconName; tone: "neutral" | "follow-up" | "won" | "rejected"; filter: "all" | QuoteStatus | null }[] = [
+    { label: "Cotizaciones", value: String(quoteCounts.total), detail: "En el período seleccionado", icon: "i-tickets", tone: "neutral", filter: "all" },
+    { label: "En seguimiento", value: String(quoteCounts.followUp), detail: "Pendientes de respuesta", icon: "i-alertas", tone: "follow-up", filter: "En seguimiento" },
+    { label: "Ventas realizadas", value: String(quoteCounts.completed), detail: "Cotizaciones convertidas", icon: "i-panel", tone: "won", filter: "Venta realizada" },
+    { label: "Ventas rechazadas", value: String(quoteCounts.rejected), detail: "Cotizaciones no concretadas", icon: "i-reclamaciones", tone: "rejected", filter: "Venta rechazada" },
+    { label: "Tasa de cierre", value: `${closeRate}%`, detail: `${quoteCounts.completed} de ${closedQuotes} ventas decididas`, icon: "i-kpi", tone: "neutral", filter: null },
   ];
 
   return (
@@ -255,25 +321,46 @@ export function SalesDashboard() {
           tabIndex={0}
         >
           <div className="mb-5 grid gap-4 sm:grid-cols-2 xl:grid-cols-5">
-            {metrics.map((metric) => (
-              <article key={metric.label} className="metric-card">
-                <div className="flex items-center justify-between gap-3">
-                  <h2 className="text-sm font-medium text-slate-600">{metric.label}</h2>
-                  <span className={`sales-metric-icon sales-metric-icon--${metric.tone}`}>
-                    <CrmIcon name={metric.icon} className="h-5 w-5" />
-                  </span>
-                </div>
-                <p className="text-3xl font-bold text-slate-900">{metric.value}</p>
-                <p className="text-xs text-slate-500">{metric.detail}</p>
-              </article>
-            ))}
+            {metrics.map((metric) => {
+              const filter = metric.filter;
+              const content = (
+                <>
+                  <div className="flex items-center justify-between gap-3">
+                    <h2 className="text-sm font-medium text-slate-600">{metric.label}</h2>
+                    <span className={`sales-metric-icon sales-metric-icon--${metric.tone}`}>
+                      <CrmIcon name={metric.icon} className="h-5 w-5" />
+                    </span>
+                  </div>
+                  <p className="text-3xl font-bold text-slate-900">{metric.value}</p>
+                  <p className="text-xs text-slate-500">{metric.detail}</p>
+                </>
+              );
+
+              if (filter === null) {
+                return <article key={metric.label} className="metric-card">{content}</article>;
+              }
+
+              return (
+                <button
+                  key={metric.label}
+                  type="button"
+                  className={`metric-card sales-filter-card${selectedStatus === filter ? " is-selected" : ""}`}
+                  aria-pressed={selectedStatus === filter}
+                  onClick={() => setSelectedStatus(filter)}
+                >
+                  {content}
+                </button>
+              );
+            })}
           </div>
 
           <section className="panel">
             <div className="mb-5 flex flex-col gap-1 sm:flex-row sm:items-end sm:justify-between">
               <div>
                 <h2 className="text-xl font-semibold text-slate-900">
-                  {selectedSeller === allSellers ? "Todas las cotizaciones" : `Cotizaciones de ${selectedSeller}`}
+                  {selectedStatus === "all"
+                    ? selectedSeller === allSellers ? "Todas las cotizaciones" : `Cotizaciones de ${selectedSeller}`
+                    : `Cotizaciones · ${selectedStatus}`}
                 </h2>
                 <p className="mt-1 text-sm text-slate-600">
                   {formatDate(reportRange.start)} – {formatDate(reportRange.end)}
@@ -291,7 +378,9 @@ export function SalesDashboard() {
                       {selectedSeller === allSellers && <th scope="col" className="px-4 py-3 font-medium">Vendedor</th>}
                       <th scope="col" className="px-4 py-3 font-medium">Cliente</th>
                       <th scope="col" className="px-4 py-3 font-medium">Fecha</th>
+                      <th scope="col" className="px-4 py-3 font-medium">Valor</th>
                       <th scope="col" className="px-4 py-3 font-medium">Estado</th>
+                      <th scope="col" className="px-4 py-3 text-right font-medium">Acción</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-200 bg-white">
@@ -303,10 +392,23 @@ export function SalesDashboard() {
                         <td className="whitespace-nowrap px-4 py-3 text-slate-600">
                           <time dateTime={quote.date}>{formatDate(quote.date)}</time>
                         </td>
+                        <td className="whitespace-nowrap px-4 py-3 text-slate-700">{formatCurrency(quote.amount)}</td>
                         <td className="px-4 py-3">
                           <span className={`sales-status-pill ${statusStyles[quote.status]}`}>
                             {quote.status}
                           </span>
+                        </td>
+                        <td className="px-4 py-3 text-right">
+                          <button
+                            type="button"
+                            className="sales-view-quote"
+                            onClick={() => {
+                              setPdfError(null);
+                              setSelectedQuote(quote);
+                            }}
+                          >
+                            Visualizar
+                          </button>
                         </td>
                       </tr>
                     ))}
@@ -315,7 +417,7 @@ export function SalesDashboard() {
               </div>
             ) : (
               <p className="rounded-xl border border-dashed border-slate-200 px-4 py-8 text-center text-sm text-slate-600">
-                No hay cotizaciones{selectedSeller === allSellers ? "" : ` de ${selectedSeller}`} en el período seleccionado.
+                No hay cotizaciones{selectedStatus === "all" ? "" : ` con estado «${selectedStatus}»`} en el período seleccionado.
               </p>
             )}
           </section>
@@ -356,6 +458,95 @@ export function SalesDashboard() {
       <p className="mt-5 text-xs text-slate-500">
         Información ficticia para demostración; no está conectada a una base de datos.
       </p>
+
+      {selectedQuote && (
+        <div
+          className="sales-modal-backdrop"
+          onMouseDown={(event) => {
+            if (event.target === event.currentTarget) setSelectedQuote(null);
+          }}
+        >
+          <section
+            ref={quoteDialogRef}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="sales-quote-modal-title"
+            className="sales-quote-modal"
+            tabIndex={-1}
+          >
+            <header className="sales-quote-modal-header">
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-[0.08em] text-brand-600">CRM Operativo · Demo</p>
+                <h2 id="sales-quote-modal-title" className="mt-1 text-2xl font-semibold text-slate-900">
+                  Cotización {selectedQuote.id}
+                </h2>
+              </div>
+              <button
+                type="button"
+                className="sales-date-shortcut"
+                aria-label="Cerrar cotización"
+                onClick={() => setSelectedQuote(null)}
+              >
+                Cerrar
+              </button>
+            </header>
+
+            <div className="p-6">
+              <dl className="grid gap-4 sm:grid-cols-2">
+                <div>
+                  <dt className="text-xs font-medium uppercase tracking-wide text-slate-500">Cliente</dt>
+                  <dd className="mt-1 font-semibold text-slate-900">{selectedQuote.customer}</dd>
+                </div>
+                <div>
+                  <dt className="text-xs font-medium uppercase tracking-wide text-slate-500">Vendedor</dt>
+                  <dd className="mt-1 font-semibold text-slate-900">{selectedQuote.seller}</dd>
+                </div>
+                <div>
+                  <dt className="text-xs font-medium uppercase tracking-wide text-slate-500">Fecha de emisión</dt>
+                  <dd className="mt-1 text-slate-700">{formatDate(selectedQuote.date)}</dd>
+                </div>
+                <div>
+                  <dt className="text-xs font-medium uppercase tracking-wide text-slate-500">Válida hasta</dt>
+                  <dd className="mt-1 text-slate-700">{formatDate(selectedQuote.validUntil)}</dd>
+                </div>
+                <div className="sm:col-span-2">
+                  <dt className="text-xs font-medium uppercase tracking-wide text-slate-500">Estado</dt>
+                  <dd className="mt-2">
+                    <span className={`sales-status-pill ${statusStyles[selectedQuote.status]}`}>{selectedQuote.status}</span>
+                  </dd>
+                </div>
+              </dl>
+
+              <div className="mt-6 rounded-2xl border border-slate-200 bg-slate-50 p-4">
+                <h3 className="text-sm font-semibold text-slate-900">Detalle de la cotización</h3>
+                <p className="mt-2 text-sm text-slate-700">{selectedQuote.concept}</p>
+                <div className="mt-4 flex items-center justify-between border-t border-slate-200 pt-4">
+                  <span className="font-semibold text-slate-700">Valor estimado</span>
+                  <span className="text-lg font-bold text-slate-900">{formatCurrency(selectedQuote.amount)}</span>
+                </div>
+              </div>
+              <p className="mt-4 text-xs text-slate-500">Cotización de demostración; los datos y valores son ficticios.</p>
+              {pdfError && <p role="alert" className="mt-3 text-sm text-rose-700">{pdfError}</p>}
+              <div className="mt-6 flex justify-end">
+                <button
+                  type="button"
+                  className="rounded-xl bg-slate-900 px-4 py-2.5 text-sm font-semibold text-white"
+                  onClick={() => {
+                    try {
+                      downloadQuotePdf(selectedQuote);
+                    } catch (error) {
+                      console.error("No se pudo descargar el PDF de la cotización", error);
+                      setPdfError("No se pudo generar el PDF. Inténtalo de nuevo.");
+                    }
+                  }}
+                >
+                  Descargar PDF
+                </button>
+              </div>
+            </div>
+          </section>
+        </div>
+      )}
     </main>
   );
 }
