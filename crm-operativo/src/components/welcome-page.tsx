@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { CrmIcon } from "@/components/crm-icons";
 import { ThemeToggle } from "@/components/theme-toggle";
 import type { Provider } from "@/domain/integrations";
 import { isPagesDemo } from "@/lib/pages-demo";
@@ -102,12 +103,18 @@ export function WelcomePage() {
               <div className="mt-5 grid grid-cols-2 gap-3">
                 <div className="rounded-2xl bg-[var(--welcome-muted)] p-3">
                   <p className="text-[11px] text-[var(--welcome-secondary)]">Conversaciones</p>
-                  <p className="mt-2 text-lg font-semibold text-[var(--welcome-accent)]">Inbox</p>
+                  <p className="mt-2 flex items-center gap-2 text-lg font-semibold text-[var(--welcome-accent)]">
+                    <CrmIcon name="i-inbox" className="h-5 w-5" />
+                    Inbox
+                  </p>
                   <p className="mt-1 text-xs leading-4 text-[var(--welcome-secondary)]">Atención centralizada</p>
                 </div>
                 <div className="rounded-2xl border border-[var(--welcome-border)] bg-[var(--welcome-card)] p-3">
                   <p className="text-[11px] text-[var(--welcome-secondary)]">Seguimiento</p>
-                  <p className="mt-2 text-lg font-semibold text-[var(--welcome-accent)]">Tickets</p>
+                  <p className="mt-2 flex items-center gap-2 text-lg font-semibold text-[var(--welcome-accent)]">
+                    <CrmIcon name="i-tickets" className="h-5 w-5" />
+                    Tickets
+                  </p>
                   <p className="mt-1 text-xs leading-4 text-[var(--welcome-secondary)]">Casos organizados</p>
                 </div>
               </div>

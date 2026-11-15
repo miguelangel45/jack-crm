@@ -79,6 +79,27 @@ body {
   box-sizing: border-box;
 }
 
+.icon {
+  color: var(--text-primary);
+  --icon-accent: var(--accent);
+}
+
+.welcome-page .icon {
+  color: var(--welcome-accent);
+  --icon-accent: var(--welcome-champagne);
+}
+
+.crm-main button .icon {
+  color: inherit;
+}
+
+.crm-icon-sprite {
+  position: absolute;
+  width: 0;
+  height: 0;
+  overflow: hidden;
+}
+
 .bg-white,
 .bg-slate-50 {
   background-color: var(--surface);
@@ -359,6 +380,14 @@ html.dark .welcome-overview {
   background: var(--sidebar-active-background);
   color: var(--sidebar-active-text);
   font-weight: 650;
+}
+
+.crm-nav-link .icon {
+  color: inherit;
+}
+
+.crm-nav-link.is-active .icon {
+  color: var(--accent);
 }
 
 .crm-nav-link.is-active::before {

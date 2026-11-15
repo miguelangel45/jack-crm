@@ -5,24 +5,20 @@ import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import { roleLabels, type AppRole } from "@/lib/auth";
 import { clearExpiredSession, getRoutePermissionsForRole, INACTIVITY_TIMEOUT_MS, triggerSessionActivity } from "@/lib/permissions";
+import { CrmIcon } from "@/components/crm-icons";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { isPagesDemo } from "@/lib/pages-demo";
 
 const navItems = [
-  { href: "/dashboard", label: "Panel general", group: "Operación", icon: "dashboard" },
-  { href: "/kpi", label: "KPI", group: "Operación", icon: "kpi" },
-  { href: "/inbox", label: "Conversaciones", group: "Operación", icon: "inbox" },
-  { href: "/tickets", label: "Reclamaciones", group: "Operación", icon: "tickets" },
-  { href: "/integrations", label: "Integraciones", group: "Administración", icon: "integrations" },
+  { href: "/dashboard", label: "Panel general", group: "Operación", icon: "i-panel" },
+  { href: "/kpi", label: "KPI", group: "Operación", icon: "i-kpi" },
+  { href: "/inbox", label: "Conversaciones", group: "Operación", icon: "i-conversaciones" },
+  { href: "/tickets", label: "Reclamaciones", group: "Operación", icon: "i-reclamaciones" },
+  { href: "/integrations", label: "Integraciones", group: "Administración", icon: "i-integraciones" },
 ] as const;
 
-function NavigationIcon({ name }: { name: "dashboard" | "kpi" | "inbox" | "tickets" | "integrations" | "collapse" | "expand" | "menu" | "close" | "logout" }) {
+function NavigationIcon({ name }: { name: "collapse" | "expand" | "menu" | "close" | "logout" }) {
   const paths = {
-    dashboard: <><rect x="3" y="3" width="7" height="7" rx="1.5" /><rect x="14" y="3" width="7" height="5" rx="1.5" /><rect x="14" y="12" width="7" height="9" rx="1.5" /><rect x="3" y="14" width="7" height="7" rx="1.5" /></>,
-    kpi: <><path d="M4 19V5M4 19h16" /><path d="m7 15 4-4 3 2 5-6" /><path d="M16 7h3v3" /></>,
-    inbox: <><path d="M4 5h16v14H4z" /><path d="M4 13h4l2 3h4l2-3h4" /><path d="M8 9h8" /></>,
-    tickets: <><path d="M5 4h14v16H5z" /><path d="M8 8h8M8 12h8M8 16h5" /></>,
-    integrations: <><path d="M9 15 7 17a4 4 0 0 1-6-6l4-4a4 4 0 0 1 6 0" transform="translate(2 0)" /><path d="m15 9 2-2a4 4 0 0 1 6 6l-4 4a4 4 0 0 1-6 0" transform="translate(-2 0)" /><path d="m9 15 6-6" /></>,
     collapse: <><path d="m14 7-5 5 5 5" /><path d="M4 4v16" /></>,
     expand: <><path d="m10 7 5 5-5 5" /><path d="M20 4v16" /></>,
     menu: <><path d="M4 6h16M4 12h16M4 18h16" /></>,
@@ -227,7 +223,7 @@ export function SiteNav() {
                       aria-current={isActive ? "page" : undefined}
                       title={isCollapsed ? item.label : undefined}
                     >
-                      <NavigationIcon name={item.icon} />
+                      <CrmIcon name={item.icon} />
                       {!isCollapsed && <span>{item.label}</span>}
                     </Link>
                   );

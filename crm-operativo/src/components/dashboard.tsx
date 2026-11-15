@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { CrmIcon } from "@/components/crm-icons";
 import { SiteNav } from "@/components/site-nav";
 import { formatChannelLabel, type Claim } from "@/domain/crm";
 import { getRoleAccessFor, type AppRole } from "@/lib/auth";
@@ -164,7 +165,10 @@ export function Dashboard() {
         <div className="panel">
           <div className="mb-5 flex items-center justify-between">
             <h2 className="text-xl font-semibold text-slate-900">Integraciones</h2>
-            <button className="rounded-xl bg-slate-900 px-3 py-2 text-sm font-medium text-white">Configurar</button>
+            <button className="inline-flex items-center gap-2 rounded-xl bg-slate-900 px-3 py-2 text-sm font-medium text-white">
+              <CrmIcon name="i-ajustes" className="h-4 w-4" />
+              Configurar
+            </button>
           </div>
           <div className="space-y-4">
             {integrations.map((integration) => (

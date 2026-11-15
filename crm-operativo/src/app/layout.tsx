@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Script from "next/script";
+import { CrmIconSprite } from "@/components/crm-icons";
 import { isPagesDemo } from "@/lib/pages-demo";
 import "./globals.css";
 
@@ -17,6 +18,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
         </Script>
       </head>
       <body className="antialiased">
+        <CrmIconSprite />
         {isPagesDemo && (
           <div className="bg-[var(--accent)] px-4 py-2 text-center text-xs font-medium text-white">
             Vista pública de demostración · Datos de ejemplo · Las funciones de servidor no están disponibles aquí
