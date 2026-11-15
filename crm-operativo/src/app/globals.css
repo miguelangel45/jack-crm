@@ -17,6 +17,9 @@
   --accent: #17243a;
   --accent-foreground: #ffffff;
   --accent-soft: #e9edf3;
+  --estado-ok: #1f7540;
+  --estado-alerta: #805d00;
+  --estado-error: #a43e3e;
   --champagne: #c6aa78;
   --metric-track: #dde3ec;
   --metric-fill: #3a5fa8;
@@ -47,6 +50,9 @@ html.dark {
   --accent: #c6aa78;
   --accent-foreground: #17243a;
   --accent-soft: rgb(198 170 120 / 14%);
+  --estado-ok: #7bdc9b;
+  --estado-alerta: #e5c46e;
+  --estado-error: #f29a9a;
   --metric-track: #36445a;
   --metric-fill: #c6aa78;
   --sidebar-background: #1b263b;
@@ -98,6 +104,120 @@ body {
   width: 0;
   height: 0;
   overflow: hidden;
+}
+
+.sales-metric-icon {
+  display: inline-grid;
+  width: 40px;
+  height: 40px;
+  flex: 0 0 40px;
+  place-items: center;
+  border-radius: 12px;
+}
+
+.sales-metric-icon .icon {
+  color: inherit;
+  --icon-accent: currentColor;
+}
+
+.sales-metric-icon--neutral {
+  background-color: var(--surface-muted);
+  color: var(--text-secondary);
+}
+
+.sales-metric-icon--follow-up {
+  background-color: color-mix(in srgb, var(--estado-alerta) 14%, var(--surface));
+  color: var(--estado-alerta);
+}
+
+.sales-metric-icon--won {
+  background-color: color-mix(in srgb, var(--estado-ok) 14%, var(--surface));
+  color: var(--estado-ok);
+}
+
+.sales-metric-icon--rejected {
+  background-color: color-mix(in srgb, var(--estado-error) 14%, var(--surface));
+  color: var(--estado-error);
+}
+
+.sales-status-pill {
+  display: inline-flex;
+  align-items: center;
+  border: 1px solid transparent;
+  border-radius: 9999px;
+  padding: 4px 10px;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.25;
+  white-space: nowrap;
+}
+
+.sales-status-pill--follow-up {
+  border-color: color-mix(in srgb, var(--estado-alerta) 30%, var(--border));
+  background-color: color-mix(in srgb, var(--estado-alerta) 14%, var(--surface));
+  color: var(--estado-alerta);
+}
+
+.sales-status-pill--won {
+  border-color: color-mix(in srgb, var(--estado-ok) 30%, var(--border));
+  background-color: color-mix(in srgb, var(--estado-ok) 14%, var(--surface));
+  color: var(--estado-ok);
+}
+
+.sales-status-pill--rejected {
+  border-color: color-mix(in srgb, var(--estado-error) 30%, var(--border));
+  background-color: color-mix(in srgb, var(--estado-error) 14%, var(--surface));
+  color: var(--estado-error);
+}
+
+.sales-date-shortcut {
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background-color: var(--surface);
+  padding: 8px 12px;
+  color: var(--text-secondary);
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 600;
+  transition: background-color 160ms ease, border-color 160ms ease, color 160ms ease;
+}
+
+.sales-date-shortcut:hover {
+  border-color: var(--accent);
+  background-color: var(--surface-muted);
+  color: var(--text-primary);
+}
+
+.sales-date-shortcut:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.sales-state-bar {
+  display: flex;
+  min-height: 14px;
+  overflow: hidden;
+  border-radius: 9999px;
+  background-color: var(--surface-muted);
+}
+
+.sales-state-segment--follow-up {
+  background-color: var(--estado-alerta);
+}
+
+.sales-state-segment--won {
+  background-color: var(--estado-ok);
+}
+
+.sales-state-segment--rejected {
+  background-color: var(--estado-error);
+}
+
+.sales-state-dot {
+  width: 10px;
+  height: 10px;
+  flex: 0 0 10px;
+  border-radius: 50%;
 }
 
 .bg-white,

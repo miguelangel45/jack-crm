@@ -12,6 +12,7 @@ import { isPagesDemo } from "@/lib/pages-demo";
 const navItems = [
   { href: "/dashboard", label: "Panel general", group: "Operación", icon: "i-panel" },
   { href: "/kpi", label: "KPI", group: "Operación", icon: "i-kpi" },
+  { href: "/ventas", label: "Ventas", group: "Operación", icon: "i-kpi" },
   { href: "/inbox", label: "Conversaciones", group: "Operación", icon: "i-conversaciones" },
   { href: "/tickets", label: "Reclamaciones", group: "Operación", icon: "i-reclamaciones" },
   { href: "/integrations", label: "Integraciones", group: "Administración", icon: "i-integraciones" },
@@ -149,6 +150,7 @@ export function SiteNav() {
   const permissions = session ? getRoutePermissionsForRole(session.role) : null;
   const visibleItems = navItems.filter((item) => {
     if (item.href === "/dashboard") return !!session;
+    if (item.href === "/ventas") return !!permissions?.dashboard;
     if (item.href === "/kpi") return !!permissions?.kpi;
     if (item.href === "/inbox") return !!permissions?.inbox;
     if (item.href === "/tickets") return !!permissions?.tickets;
