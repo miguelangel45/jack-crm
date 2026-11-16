@@ -939,6 +939,10 @@ html.dark .crm-main h3 {
   letter-spacing: 0.06em;
 }
 
+:where(a, button, [role="button"], [role="tab"], [role="option"], [role="menuitem"], input[type="button"], input[type="submit"], input[type="reset"], select):not(:disabled):not([aria-disabled="true"]):not(.crm-sidebar-backdrop):hover {
+  filter: brightness(0.88);
+}
+
 @media (max-width: 767px) {
   .crm-main {
     margin-left: 0;
