@@ -5,6 +5,7 @@ import { jsPDF } from "jspdf";
 import { CrmIcon, type CrmIconName } from "@/components/crm-icons";
 import { SiteNav } from "@/components/site-nav";
 import type { AppRole } from "@/lib/auth";
+import { DASHBOARD_VIEW_STORAGE_KEY, dashboardViewOptions, type DashboardView } from "@/lib/dashboard-view";
 import { getSessionFromStorage } from "@/lib/permissions";
 import { isPagesDemo } from "@/lib/pages-demo";
 import {
@@ -138,12 +139,12 @@ function getShortcutRange(shortcut: DateShortcut): DateRange {
 }
 
 export function SalesDashboard() {
-  const [selectedSeller, setSelectedSeller] = useState<string>(isPagesDemo ? salesSellers[0] : allSellers);
-  const [assignedSeller, setAssignedSeller] = useState<string | null>(isPagesDemo ? salesSellers[0] : null);
+  const [selectedSeller, setSelectedSeller] = useState<string>(allSellers);
+  const [assignedSeller, setAssignedSeller] = useState<string | null>(null);
   const [selectedStatus, setSelectedStatus] = useState<"all" | QuoteStatus>("all");
   const [selectedQuote, setSelectedQuote] = useState<SalesQuote | null>(null);
   const quoteDialogRef = useRef<HTMLElement>(null);
-  const [role, setRole] = useState<AppRole | null>(isPagesDemo ? "agent" : null);
+  const [role, setRole] = useState<AppRole | null>(null);
   const [startDate, setStartDate] = useState("2026-10-01");
   const [endDate, setEndDate] = useState("2026-11-30");
   const [reportRange, setReportRange] = useState({ start: "2026-10-01", end: "2026-11-30" });
@@ -173,6 +174,29 @@ export function SalesDashboard() {
       setAssignedSeller(seller);
       setSelectedSeller(seller ?? "");
     }
+  }, []);
+
+  useEffect(() => {
+    if (!isPagesDemo) return;
+
+    let selectedView: DashboardView = "gerente";
+    try {
+      const savedView = sessionStorage.getItem(DASHBOARD_VIEW_STORAGE_KEY);
+      selectedView = dashboardViewOptions.find((option) => option.id === savedView)?.id ?? "gerente";
+    } catch (error) {
+      console.error("No se pudo leer el modo de vista guardado.", error);
+    }
+
+    if (selectedView === "asesor") {
+      setRole("agent");
+      setAssignedSeller(salesSellers[0]);
+      setSelectedSeller(salesSellers[0]);
+      return;
+    }
+
+    setRole(selectedView === "supervisor" ? "supervisor" : "admin");
+    setAssignedSeller(null);
+    setSelectedSeller(allSellers);
   }, []);
 
   useEffect(() => {
@@ -349,7 +373,9 @@ export function SalesDashboard() {
           <p className="text-sm font-medium uppercase tracking-[0.08em] text-brand-600">Operación comercial</p>
           <h1 className="mt-2 text-3xl font-semibold text-slate-900">Panel de ventas</h1>
           <p className="mt-2 max-w-2xl text-sm text-slate-600">
-            Consulta cotizaciones y resultados por vendedor en el período que elijas.
+            {canViewAllSellers
+              ? "Consulta los resultados generales o filtra las cotizaciones por vendedor."
+              : "Consulta tus cotizaciones y resultados en el período que elijas."}
           </p>
         </div>
         <span className="inline-flex w-fit items-center gap-2 rounded-full border border-[var(--champagne)] bg-[var(--accent-soft)] px-3 py-1.5 text-xs font-semibold text-slate-700 dark:text-slate-200">
@@ -362,7 +388,9 @@ export function SalesDashboard() {
         <div className="mb-4 flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
           <div>
             <h2 id="sales-report-title" className="text-lg font-semibold text-slate-900">Generar informe por fechas</h2>
-            <p className="mt-1 text-sm text-slate-600">El informe se calcula para el vendedor seleccionado.</p>
+            <p className="mt-1 text-sm text-slate-600">
+              {canViewAllSellers ? "Elige un vendedor o consulta el consolidado del equipo." : "El informe incluye únicamente tus cotizaciones."}
+            </p>
           </div>
           <div className="flex flex-wrap gap-2" aria-label="Atajos de fecha">
             {(["Este mes", "Mes pasado", "Último trimestre"] as const).map((shortcut) => (
@@ -500,7 +528,7 @@ export function SalesDashboard() {
             })}
           </div>
 
-          {today && followUpAlerts.length > 0 && (
+          {role === "agent" && today && followUpAlerts.length > 0 && (
             followUpAlertsEnabled ? (
               <aside
                 role="alert"
