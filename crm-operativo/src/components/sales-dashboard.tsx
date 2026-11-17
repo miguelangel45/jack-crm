@@ -9,7 +9,7 @@ import { getSessionFromStorage } from "@/lib/permissions";
 import { isPagesDemo } from "@/lib/pages-demo";
 import {
   demoSalesQuotes,
-  MONTHLY_SALES_BUDGET_PER_SELLER,
+  getSalesSellerForUser,
   salesSellers,
   type QuoteStatus,
   type SalesQuote,
@@ -139,10 +139,11 @@ function getShortcutRange(shortcut: DateShortcut): DateRange {
 
 export function SalesDashboard() {
   const [selectedSeller, setSelectedSeller] = useState<string>(isPagesDemo ? salesSellers[0] : allSellers);
+  const [assignedSeller, setAssignedSeller] = useState<string | null>(isPagesDemo ? salesSellers[0] : null);
   const [selectedStatus, setSelectedStatus] = useState<"all" | QuoteStatus>("all");
   const [selectedQuote, setSelectedQuote] = useState<SalesQuote | null>(null);
   const quoteDialogRef = useRef<HTMLElement>(null);
-  const [role, setRole] = useState<AppRole | null>(isPagesDemo ? "admin" : null);
+  const [role, setRole] = useState<AppRole | null>(isPagesDemo ? "agent" : null);
   const [startDate, setStartDate] = useState("2026-10-01");
   const [endDate, setEndDate] = useState("2026-11-30");
   const [reportRange, setReportRange] = useState({ start: "2026-10-01", end: "2026-11-30" });
@@ -164,10 +165,13 @@ export function SalesDashboard() {
     const session = getSessionFromStorage();
     const activeRole = session?.role ?? "viewer";
     setRole(activeRole);
-    if (activeRole === "agent") {
-      const assignedSeller = salesSellers.find((seller) => seller.toLowerCase() === session?.name.trim().toLowerCase())
-        ?? salesSellers[0];
-      setSelectedSeller(assignedSeller);
+    if (activeRole === "admin" || activeRole === "supervisor") {
+      setAssignedSeller(null);
+      setSelectedSeller(allSellers);
+    } else {
+      const seller = session ? getSalesSellerForUser(session.username, session.name) : null;
+      setAssignedSeller(seller);
+      setSelectedSeller(seller ?? "");
     }
   }, []);
 
@@ -192,9 +196,12 @@ export function SalesDashboard() {
     };
   }, [selectedQuote]);
 
+  const canViewAllSellers = role === "admin" || role === "supervisor";
   const reportQuotes = demoSalesQuotes
     .filter((quote) => (
-      ((role !== "agent" && selectedSeller === allSellers) || quote.seller === selectedSeller)
+      (canViewAllSellers
+        ? selectedSeller === allSellers || quote.seller === selectedSeller
+        : Boolean(assignedSeller && quote.seller === assignedSeller))
       && quote.date >= reportRange.start
       && quote.date <= reportRange.end
     ))
@@ -218,18 +225,6 @@ export function SalesDashboard() {
   const rejectedAmount = reportQuotes
     .filter((quote) => quote.status === "Venta rechazada")
     .reduce((total, quote) => total + quote.amount, 0);
-  const monthlySales = today
-    ? demoSalesQuotes
-      .filter((quote) => (
-        quote.seller === selectedSeller || selectedSeller === allSellers
-      ) && quote.date.startsWith(today.slice(0, 7)) && quote.status === "Venta realizada")
-      .reduce((total, quote) => total + quote.amount, 0)
-    : 0;
-  const monthlyBudget = MONTHLY_SALES_BUDGET_PER_SELLER
-    * (selectedSeller === allSellers ? salesSellers.length : 1);
-  const monthlyBudgetProgress = monthlyBudget === 0
-    ? 0
-    : Math.min(Math.round((monthlySales / monthlyBudget) * 100), 100);
   const closedQuotes = quoteCounts.completed + quoteCounts.rejected;
   const closeRate = closedQuotes === 0 ? 0 : Math.round((quoteCounts.completed / closedQuotes) * 100);
   const statusDistribution = [
@@ -318,7 +313,9 @@ export function SalesDashboard() {
   }
 
   const tabId = selectedSeller.toLowerCase().replace(/ /g, "-");
-  const sellersToShow = role === "agent" ? [selectedSeller] : [allSellers, ...salesSellers];
+  const sellersToShow = canViewAllSellers
+    ? [allSellers, ...salesSellers]
+    : assignedSeller ? [assignedSeller] : [];
   const metrics: {
     label: string;
     value: string;
@@ -326,7 +323,6 @@ export function SalesDashboard() {
     icon: CrmIconName;
     tone: "neutral" | "follow-up" | "won" | "rejected";
     filter: "all" | QuoteStatus | null;
-    progress?: number;
     comparison?: { sold: number; rejected: number };
   }[] = [
     { label: "Cotizaciones", value: String(quoteCounts.total), detail: "En el período seleccionado", icon: "i-tickets", tone: "neutral", filter: "all" },
@@ -334,17 +330,6 @@ export function SalesDashboard() {
     { label: "Ventas realizadas", value: String(quoteCounts.completed), detail: "Cotizaciones convertidas", icon: "i-panel", tone: "won", filter: "Venta realizada" },
     { label: "Ventas rechazadas", value: String(quoteCounts.rejected), detail: "Cotizaciones no concretadas", icon: "i-reclamaciones", tone: "rejected", filter: "Venta rechazada" },
     { label: "Tasa de cierre", value: `${closeRate}%`, detail: `${quoteCounts.completed} de ${closedQuotes} ventas decididas`, icon: "i-kpi", tone: "neutral", filter: null },
-    {
-      label: "Presupuesto mensual",
-      value: formatCurrency(monthlyBudget),
-      detail: today
-        ? `${formatCurrency(monthlySales)} vendidos · ${monthlyBudgetProgress}% cumplido`
-        : "Calculando avance del mes...",
-      icon: "i-kpi",
-      tone: "neutral",
-      filter: null,
-      progress: monthlyBudgetProgress,
-    },
     {
       label: "Venta vs. rechazada",
       value: "",
@@ -422,6 +407,11 @@ export function SalesDashboard() {
         {dateError && <p role="alert" className="mt-3 text-sm text-rose-700">{dateError}</p>}
       </section>
 
+      {!canViewAllSellers && !assignedSeller ? (
+        <p role="alert" className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-6 text-sm text-amber-900">
+          Este usuario no tiene un vendedor asignado. Solicita al administrador que configure tu cuenta.
+        </p>
+      ) : (
       <section aria-label="Informes por vendedor">
         <div role="tablist" aria-label="Vendedores" className="mb-5 flex flex-wrap gap-2">
           {sellersToShow.map((seller) => {
@@ -489,18 +479,6 @@ export function SalesDashboard() {
                     <p className="text-3xl font-bold text-slate-900">{metric.value}</p>
                   )}
                   <p className="text-xs text-slate-500">{metric.detail}</p>
-                  {metric.progress !== undefined && (
-                    <div
-                      className="h-2 overflow-hidden rounded-full bg-slate-200"
-                      role="progressbar"
-                      aria-label="Avance del presupuesto mensual"
-                      aria-valuemin={0}
-                      aria-valuemax={100}
-                      aria-valuenow={metric.progress}
-                    >
-                      <div className="h-full rounded-full bg-emerald-500 transition-all" style={{ width: `${metric.progress}%` }} />
-                    </div>
-                  )}
                 </>
               );
 
@@ -681,6 +659,7 @@ export function SalesDashboard() {
           </section>
         </div>
       </section>
+      )}
 
       <p className="mt-5 text-xs text-slate-500">
         Información ficticia para demostración; no está conectada a una base de datos.

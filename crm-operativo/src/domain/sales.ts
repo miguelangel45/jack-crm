@@ -15,6 +15,18 @@ export const MONTHLY_SALES_BUDGET_PER_SELLER = 15_000_000;
 
 export const salesSellers = ["Vendedor 1", "Vendedor 2", "Vendedor 3"] as const;
 
+const salesSellerByUsername: Record<string, (typeof salesSellers)[number]> = {
+  agentcrm01: salesSellers[0],
+  agentcrm02: salesSellers[1],
+  agentcrm03: salesSellers[2],
+};
+
+export function getSalesSellerForUser(username: string, name: string) {
+  return salesSellerByUsername[username.trim().toLowerCase()]
+    ?? salesSellers.find((seller) => seller.toLowerCase() === name.trim().toLowerCase())
+    ?? null;
+}
+
 export const demoSalesQuotes: SalesQuote[] = [
   { id: "COT-001", seller: "Vendedor 1", customer: "Comercial Andina", date: "2026-11-03", validUntil: "2026-11-18", status: "En seguimiento", concept: "Licencias CRM para 10 usuarios", amount: 2450000 },
   { id: "COT-002", seller: "Vendedor 1", customer: "Soluciones del Norte", date: "2026-11-06", validUntil: "2026-11-21", status: "En seguimiento", concept: "Implementación de bandeja unificada", amount: 3180000 },
