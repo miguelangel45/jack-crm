@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { CrmIcon } from "@/components/crm-icons";
+import { DashboardViewMenu } from "@/components/dashboard-view-menu";
 import { ThemeToggle } from "@/components/theme-toggle";
 import type { Provider } from "@/domain/integrations";
 import { isPagesDemo } from "@/lib/pages-demo";
@@ -58,6 +59,7 @@ export function WelcomePage() {
                 </div>
               </div>
             </nav>
+            <DashboardViewMenu />
             <ThemeToggle />
             <Link href={isPagesDemo ? "/dashboard" : "/login"} className="hidden rounded-xl px-4 py-2.5 text-sm font-semibold text-[var(--welcome-secondary)] transition hover:bg-[var(--welcome-muted)] sm:inline-flex">
               {isPagesDemo ? "Explorar demo" : "Iniciar sesión"}
