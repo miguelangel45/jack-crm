@@ -9,6 +9,12 @@ export type SalesQuote = {
   status: QuoteStatus;
   concept: string;
   amount: number;
+  saleDate?: string;
+};
+
+export type SalesQuoteStatusUpdate = {
+  status: QuoteStatus;
+  changedAt: string;
 };
 
 export type QuotedProduct = {
@@ -28,6 +34,7 @@ export type CreatedSalesQuote = SalesQuote & {
 };
 
 export const CREATED_SALES_QUOTES_STORAGE_KEY = "crm-created-sales-quotes";
+export const SALES_QUOTE_STATUS_STORAGE_KEY = "crm-sales-quote-statuses";
 export const MONTHLY_SALES_BUDGET_PER_SELLER = 15_000_000;
 
 export const salesSellers = ["Vendedor 1", "Vendedor 2", "Vendedor 3"] as const;
@@ -44,6 +51,10 @@ export function getSalesSellerForUser(username: string, name: string) {
     ?? null;
 }
 
+function isQuoteStatus(value: unknown): value is QuoteStatus {
+  return value === "En seguimiento" || value === "Venta realizada" || value === "Venta rechazada";
+}
+
 function isCreatedSalesQuote(value: unknown): value is CreatedSalesQuote {
   if (!value || typeof value !== "object") return false;
 
@@ -54,7 +65,7 @@ function isCreatedSalesQuote(value: unknown): value is CreatedSalesQuote {
     && typeof quote.customer === "string"
     && typeof quote.date === "string"
     && typeof quote.validUntil === "string"
-    && (quote.status === "En seguimiento" || quote.status === "Venta realizada" || quote.status === "Venta rechazada")
+    && isQuoteStatus(quote.status)
     && typeof quote.concept === "string"
     && typeof quote.amount === "number"
     && typeof quote.customerDocument === "string"
@@ -108,6 +119,73 @@ export function addCreatedSalesQuote(quote: CreatedSalesQuote): boolean {
     console.error("No se pudo guardar la cotización en esta sesión.", error);
     return false;
   }
+}
+
+export function readSalesQuoteStatusUpdates(): Record<string, SalesQuoteStatusUpdate> {
+  if (typeof window === "undefined") return {};
+
+  try {
+    const storedUpdates = window.sessionStorage.getItem(SALES_QUOTE_STATUS_STORAGE_KEY);
+    if (!storedUpdates) return {};
+
+    const parsed: unknown = JSON.parse(storedUpdates);
+    if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) {
+      throw new Error("El formato de estados de cotización guardados no es válido.");
+    }
+
+    const updates: Record<string, SalesQuoteStatusUpdate> = {};
+    for (const [quoteId, value] of Object.entries(parsed)) {
+      if (!quoteId || !value || typeof value !== "object") {
+        throw new Error("El formato de estados de cotización guardados no es válido.");
+      }
+      const update = value as Record<string, unknown>;
+      if (!isQuoteStatus(update.status) || typeof update.changedAt !== "string") {
+        throw new Error("El formato de estados de cotización guardados no es válido.");
+      }
+      updates[quoteId] = { status: update.status, changedAt: update.changedAt };
+    }
+    return updates;
+  } catch (error) {
+    console.error("No se pudieron leer los estados de las cotizaciones.", error);
+    return {};
+  }
+}
+
+function formatLocalDate(date: Date) {
+  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
+}
+
+export function updateSalesQuoteStatus(quoteId: string, status: QuoteStatus, changedAt = formatLocalDate(new Date())): boolean {
+  if (typeof window === "undefined") {
+    console.error("No se puede actualizar una cotización fuera del navegador.");
+    return false;
+  }
+
+  try {
+    window.sessionStorage.setItem(
+      SALES_QUOTE_STATUS_STORAGE_KEY,
+      JSON.stringify({ ...readSalesQuoteStatusUpdates(), [quoteId]: { status, changedAt } }),
+    );
+    return true;
+  } catch (error) {
+    console.error("No se pudo guardar el estado de la cotización.", error);
+    return false;
+  }
+}
+
+export function applySalesQuoteStatusUpdates(
+  quotes: SalesQuote[],
+  updates: Record<string, SalesQuoteStatusUpdate>,
+): SalesQuote[] {
+  return quotes.map((quote) => {
+    const update = updates[quote.id];
+    if (!update) return quote;
+    return {
+      ...quote,
+      status: update.status,
+      saleDate: update.status === "Venta realizada" ? update.changedAt : undefined,
+    };
+  });
 }
 
 export const demoSalesQuotes: SalesQuote[] = [

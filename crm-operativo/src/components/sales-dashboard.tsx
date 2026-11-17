@@ -9,13 +9,17 @@ import { DASHBOARD_VIEW_STORAGE_KEY, dashboardViewOptions, type DashboardView } 
 import { getSessionFromStorage } from "@/lib/permissions";
 import { isPagesDemo } from "@/lib/pages-demo";
 import {
-  readCreatedSalesQuotes,
+  applySalesQuoteStatusUpdates,
   demoSalesQuotes,
   getSalesSellerForUser,
+  readCreatedSalesQuotes,
+  readSalesQuoteStatusUpdates,
   salesSellers,
+  updateSalesQuoteStatus,
   type CreatedSalesQuote,
   type QuoteStatus,
   type SalesQuote,
+  type SalesQuoteStatusUpdate,
 } from "@/domain/sales";
 
 const allSellers = "Todos los vendedores";
@@ -159,6 +163,9 @@ export function SalesDashboard() {
   const [generatedDiscount, setGeneratedDiscount] = useState<number | null>(null);
   const [followUpAlertsEnabled, setFollowUpAlertsEnabled] = useState(true);
   const [createdQuotes, setCreatedQuotes] = useState<CreatedSalesQuote[]>([]);
+  const [quoteStatusUpdates, setQuoteStatusUpdates] = useState<Record<string, SalesQuoteStatusUpdate>>({});
+  const [statusUpdateError, setStatusUpdateError] = useState<string | null>(null);
+  const [statusUpdateSuccess, setStatusUpdateSuccess] = useState<string | null>(null);
 
   useEffect(() => {
     setToday(formatInputDate(new Date()));
@@ -166,6 +173,7 @@ export function SalesDashboard() {
 
   useEffect(() => {
     setCreatedQuotes(readCreatedSalesQuotes());
+    setQuoteStatusUpdates(readSalesQuoteStatusUpdates());
   }, []);
 
   useEffect(() => {
@@ -228,7 +236,10 @@ export function SalesDashboard() {
   }, [selectedQuote]);
 
   const canViewAllSellers = role === "admin" || role === "supervisor";
-  const allSalesQuotes = [...demoSalesQuotes, ...createdQuotes];
+  const allSalesQuotes = applySalesQuoteStatusUpdates(
+    [...demoSalesQuotes, ...createdQuotes],
+    quoteStatusUpdates,
+  );
   const reportQuotes = allSalesQuotes
     .filter((quote) => (
       (canViewAllSellers
@@ -299,6 +310,40 @@ export function SalesDashboard() {
     setEndDate(range.end);
     setReportRange(range);
     setSelectedStatus("all");
+  }
+
+  function openQuoteDetails(quote: SalesQuote) {
+    setPdfError(null);
+    setDiscountError(null);
+    setDiscountSuccess(null);
+    setGeneratedDiscount(null);
+    setStatusUpdateError(null);
+    setStatusUpdateSuccess(null);
+    setSelectedQuote(quote);
+  }
+
+  function updateSelectedQuoteStatus(status: QuoteStatus) {
+    if (!selectedQuote || selectedQuote.status === status) return;
+
+    setStatusUpdateError(null);
+    setStatusUpdateSuccess(null);
+    const changedAt = formatInputDate(new Date());
+    if (!updateSalesQuoteStatus(selectedQuote.id, status, changedAt)) {
+      setStatusUpdateError("No se pudo guardar el resultado. Revisa el almacenamiento del navegador e inténtalo de nuevo.");
+      return;
+    }
+
+    setQuoteStatusUpdates((current) => ({ ...current, [selectedQuote.id]: { status, changedAt } }));
+    setSelectedQuote((current) => (
+      current
+        ? { ...current, status, saleDate: status === "Venta realizada" ? changedAt : undefined }
+        : null
+    ));
+    setStatusUpdateSuccess(
+      status === "Venta realizada"
+        ? "Venta registrada. El valor se suma al presupuesto y a los KPI de ventas."
+        : "Venta rechazada. Se actualizan los KPI y no se suma al presupuesto de ventas.",
+    );
   }
 
   function showQuotePdf(quote: SalesQuote, discount = 0) {
@@ -571,13 +616,7 @@ export function SalesDashboard() {
                       <button
                         type="button"
                         className="sales-view-quote shrink-0"
-                        onClick={() => {
-                          setPdfError(null);
-                          setDiscountError(null);
-                          setDiscountSuccess(null);
-                          setGeneratedDiscount(null);
-                          setSelectedQuote(quote);
-                        }}
+                        onClick={() => openQuoteDetails(quote)}
                       >
                         Abrir
                       </button>
@@ -656,13 +695,7 @@ export function SalesDashboard() {
                             <button
                               type="button"
                               className="sales-view-quote"
-                              onClick={() => {
-                                setPdfError(null);
-                                setDiscountError(null);
-                                setDiscountSuccess(null);
-                                setGeneratedDiscount(null);
-                                setSelectedQuote(quote);
-                              }}
+                              onClick={() => openQuoteDetails(quote)}
                             >
                               Detalle
                             </button>
@@ -780,6 +813,33 @@ export function SalesDashboard() {
                   </dd>
                 </div>
               </dl>
+
+              <section className="mt-6 rounded-2xl border border-slate-200 p-4" aria-labelledby="quote-outcome-title">
+                <h3 id="quote-outcome-title" className="text-sm font-semibold text-slate-900">Resultado del seguimiento</h3>
+                <p className="mt-1 text-xs text-slate-600">
+                  Las ventas realizadas suman al presupuesto; las rechazadas actualizan los KPI sin sumar ventas.
+                </p>
+                <div className="mt-3 flex flex-wrap gap-2">
+                  <button
+                    type="button"
+                    disabled={selectedQuote.status === "Venta realizada"}
+                    onClick={() => updateSelectedQuoteStatus("Venta realizada")}
+                    className="rounded-xl bg-emerald-700 px-4 py-2.5 text-sm font-semibold text-white hover:bg-emerald-800 disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    Marcar venta realizada
+                  </button>
+                  <button
+                    type="button"
+                    disabled={selectedQuote.status === "Venta rechazada"}
+                    onClick={() => updateSelectedQuoteStatus("Venta rechazada")}
+                    className="rounded-xl bg-rose-700 px-4 py-2.5 text-sm font-semibold text-white hover:bg-rose-800 disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    Marcar venta rechazada
+                  </button>
+                </div>
+                {statusUpdateError && <p role="alert" className="mt-3 text-sm text-rose-700">{statusUpdateError}</p>}
+                {statusUpdateSuccess && <p role="status" className="mt-3 text-sm text-emerald-700">{statusUpdateSuccess}</p>}
+              </section>
 
               <div className="mt-6 rounded-2xl border border-slate-200 bg-slate-50 p-4">
                 <h3 className="text-sm font-semibold text-slate-900">Detalle de la cotización</h3>

@@ -7,12 +7,15 @@ import { SiteNav } from "@/components/site-nav";
 import { formatChannelLabel, type Claim } from "@/domain/crm";
 import {
   addCreatedSalesQuote,
+  applySalesQuoteStatusUpdates,
   demoSalesQuotes,
   getSalesSellerForUser,
   MONTHLY_SALES_BUDGET_PER_SELLER,
   readCreatedSalesQuotes,
+  readSalesQuoteStatusUpdates,
   salesSellers,
   type CreatedSalesQuote,
+  type SalesQuoteStatusUpdate,
   type SalesQuote,
 } from "@/domain/sales";
 import { getRoleAccessFor, type AppRole } from "@/lib/auth";
@@ -268,6 +271,7 @@ export function Dashboard() {
   const [today, setToday] = useState<string | null>(null);
   const [greeting, setGreeting] = useState<string | null>(null);
   const [createdQuotes, setCreatedQuotes] = useState<CreatedSalesQuote[]>([]);
+  const [quoteStatusUpdates, setQuoteStatusUpdates] = useState<Record<string, SalesQuoteStatusUpdate>>({});
   const [isQuoteDialogOpen, setIsQuoteDialogOpen] = useState(false);
   const [quoteCreationMessage, setQuoteCreationMessage] = useState<string | null>(null);
 
@@ -276,6 +280,7 @@ export function Dashboard() {
     setToday(`${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`);
     setGreeting(getGreeting(now));
     setCreatedQuotes(readCreatedSalesQuotes());
+    setQuoteStatusUpdates(readSalesQuoteStatusUpdates());
 
     if (!isPagesDemo) {
       const activeSession = getSessionFromStorage();
@@ -338,7 +343,10 @@ export function Dashboard() {
   const assignedSeller = session?.role === "agent"
     ? getSalesSellerForUser(session.username, session.name)
     : demoAdvisorMode ? salesSellers[0] : null;
-  const allWorkspaceSalesQuotes = [...createdQuotes, ...demoSalesQuotes];
+  const allWorkspaceSalesQuotes = applySalesQuoteStatusUpdates(
+    [...createdQuotes, ...demoSalesQuotes],
+    quoteStatusUpdates,
+  );
   const workspaceSalesQuotes = canViewTeamSales
     ? allWorkspaceSalesQuotes
     : assignedSeller
@@ -347,7 +355,7 @@ export function Dashboard() {
   const monthKey = today?.slice(0, 7);
   const monthlySales = monthKey
     ? workspaceSalesQuotes
-      .filter((quote) => quote.date.startsWith(monthKey) && quote.status === "Venta realizada")
+      .filter((quote) => (quote.saleDate ?? quote.date).startsWith(monthKey) && quote.status === "Venta realizada")
       .reduce((total, quote) => total + quote.amount, 0)
     : 0;
   const monthlyBudget = assignedSeller
