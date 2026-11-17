@@ -500,54 +500,76 @@ export function SalesDashboard() {
             })}
           </div>
 
-          <section className="panel mb-5" aria-labelledby="sales-follow-up-title">
-            <header className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-              <div>
-                <h2 id="sales-follow-up-title" className="text-lg font-semibold text-slate-900">Alertas de seguimiento</h2>
-                <p className="mt-1 text-sm text-slate-600">Aviso cuando una cotización siga pendiente 2 días después de generarse.</p>
-              </div>
-              <label className="inline-flex items-center gap-2 text-sm font-medium text-slate-700">
-                <input
-                  type="checkbox"
-                  checked={followUpAlertsEnabled}
-                  onChange={(event) => setFollowUpAlertsEnabled(event.target.checked)}
-                  className="h-4 w-4 rounded border-slate-300 text-brand-600 focus:ring-brand-500"
-                />
-                Activar alertas
-              </label>
-            </header>
-            {!followUpAlertsEnabled ? (
-              <p className="rounded-xl bg-slate-50 px-4 py-3 text-sm text-slate-600">Las alertas están desactivadas.</p>
-            ) : today === null ? (
-              <p className="rounded-xl bg-slate-50 px-4 py-3 text-sm text-slate-600">Calculando alertas...</p>
-            ) : followUpAlerts.length === 0 ? (
-              <p className="rounded-xl bg-slate-50 px-4 py-3 text-sm text-slate-600">No hay cotizaciones que requieran seguimiento en este período.</p>
+          {today && followUpAlerts.length > 0 && (
+            followUpAlertsEnabled ? (
+              <aside
+                role="alert"
+                aria-labelledby="sales-follow-up-title"
+                className="fixed right-4 top-4 z-50 w-96 max-w-[90vw] overflow-hidden rounded-2xl border border-amber-300 bg-[var(--surface)] text-[var(--text-primary)] shadow-2xl"
+              >
+                <header className="flex items-start justify-between gap-3 border-b border-amber-200 bg-amber-50 p-4">
+                  <div className="flex items-start gap-3">
+                    <span className="sales-metric-icon sales-metric-icon--follow-up">
+                      <CrmIcon name="i-alertas" className="h-5 w-5" />
+                    </span>
+                    <div>
+                      <h2 id="sales-follow-up-title" className="font-semibold text-amber-950">
+                        Seguimientos pendientes
+                      </h2>
+                      <p className="mt-1 text-sm text-amber-900">
+                        {followUpAlerts.length} cotizaciones requieren atención
+                      </p>
+                    </div>
+                  </div>
+                  <span className="rounded-full bg-amber-200 px-2.5 py-1 text-xs font-bold text-amber-950">
+                    {followUpAlerts.length}
+                  </span>
+                </header>
+                <ul className="max-h-60 divide-y divide-slate-200 overflow-y-auto">
+                  {followUpAlerts.map(({ quote, days }) => (
+                    <li key={quote.id} className="flex items-center justify-between gap-3 px-4 py-3">
+                      <div className="min-w-0">
+                        <p className="truncate text-sm font-semibold text-slate-900">{quote.id} · {quote.customer}</p>
+                        <p className="mt-0.5 text-xs text-slate-600">Pendiente hace {days} días</p>
+                      </div>
+                      <button
+                        type="button"
+                        className="sales-view-quote shrink-0"
+                        onClick={() => {
+                          setPdfError(null);
+                          setDiscountError(null);
+                          setDiscountSuccess(null);
+                          setGeneratedDiscount(null);
+                          setSelectedQuote(quote);
+                        }}
+                      >
+                        Abrir
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+                <label className="flex cursor-pointer items-center gap-2 border-t border-slate-200 px-4 py-3 text-xs font-medium text-slate-600">
+                  <input
+                    type="checkbox"
+                    checked={followUpAlertsEnabled}
+                    onChange={(event) => setFollowUpAlertsEnabled(event.target.checked)}
+                    className="h-4 w-4 rounded border-slate-300 text-brand-600 focus:ring-brand-500"
+                  />
+                  Mostrar alerta flotante
+                </label>
+              </aside>
             ) : (
-              <ul className="divide-y divide-amber-200 rounded-xl border border-amber-200 bg-amber-50">
-                {followUpAlerts.map(({ quote, days }) => (
-                  <li key={quote.id} className="flex flex-col gap-2 px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
-                    <p className="text-sm text-amber-950">
-                      <span className="font-semibold">{quote.id} · {quote.customer}</span>
-                      {" · "}Pendiente hace {days} días
-                    </p>
-                    <button
-                      type="button"
-                      className="sales-view-quote w-fit"
-                      onClick={() => {
-                        setPdfError(null);
-                        setDiscountError(null);
-                        setDiscountSuccess(null);
-                        setGeneratedDiscount(null);
-                        setSelectedQuote(quote);
-                      }}
-                    >
-                      Abrir cotización
-                    </button>
-                  </li>
-                ))}
-              </ul>
-            )}
-          </section>
+              <button
+                type="button"
+                aria-label={`Mostrar ${followUpAlerts.length} seguimientos pendientes`}
+                onClick={() => setFollowUpAlertsEnabled(true)}
+                className="fixed right-4 top-4 z-50 inline-flex items-center gap-2 rounded-full border border-amber-300 bg-amber-50 px-4 py-3 text-sm font-semibold text-amber-950 shadow-xl"
+              >
+                <CrmIcon name="i-alertas" className="h-5 w-5" />
+                Ver pendientes · {followUpAlerts.length}
+              </button>
+            )
+          )}
 
           <section className="panel">
             <div className="mb-5 flex flex-col gap-1 sm:flex-row sm:items-end sm:justify-between">
