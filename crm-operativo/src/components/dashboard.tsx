@@ -2,13 +2,17 @@
 
 import { useEffect, useState } from "react";
 import { CrmIcon } from "@/components/crm-icons";
+import { CreateQuoteDialog } from "@/components/create-quote-dialog";
 import { SiteNav } from "@/components/site-nav";
 import { formatChannelLabel, type Claim } from "@/domain/crm";
 import {
+  addCreatedSalesQuote,
   demoSalesQuotes,
   getSalesSellerForUser,
   MONTHLY_SALES_BUDGET_PER_SELLER,
+  readCreatedSalesQuotes,
   salesSellers,
+  type CreatedSalesQuote,
   type SalesQuote,
 } from "@/domain/sales";
 import { getRoleAccessFor, type AppRole } from "@/lib/auth";
@@ -263,11 +267,15 @@ export function Dashboard() {
   const [viewMode, setViewMode] = useState<DashboardView>(isPagesDemo ? "gerente" : "asesor");
   const [today, setToday] = useState<string | null>(null);
   const [greeting, setGreeting] = useState<string | null>(null);
+  const [createdQuotes, setCreatedQuotes] = useState<CreatedSalesQuote[]>([]);
+  const [isQuoteDialogOpen, setIsQuoteDialogOpen] = useState(false);
+  const [quoteCreationMessage, setQuoteCreationMessage] = useState<string | null>(null);
 
   useEffect(() => {
     const now = new Date();
     setToday(`${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`);
     setGreeting(getGreeting(now));
+    setCreatedQuotes(readCreatedSalesQuotes());
 
     if (!isPagesDemo) {
       const activeSession = getSessionFromStorage();
@@ -330,10 +338,11 @@ export function Dashboard() {
   const assignedSeller = session?.role === "agent"
     ? getSalesSellerForUser(session.username, session.name)
     : demoAdvisorMode ? salesSellers[0] : null;
+  const allWorkspaceSalesQuotes = [...createdQuotes, ...demoSalesQuotes];
   const workspaceSalesQuotes = canViewTeamSales
-    ? demoSalesQuotes
+    ? allWorkspaceSalesQuotes
     : assignedSeller
-      ? demoSalesQuotes.filter((quote) => quote.seller === assignedSeller)
+      ? allWorkspaceSalesQuotes.filter((quote) => quote.seller === assignedSeller)
       : [];
   const monthKey = today?.slice(0, 7);
   const monthlySales = monthKey
@@ -361,6 +370,13 @@ export function Dashboard() {
     ];
 
     downloadCsv("reclamaciones-crm.csv", rows);
+  };
+
+  const handleCreateQuote = (quote: CreatedSalesQuote) => {
+    if (!addCreatedSalesQuote(quote)) return false;
+    setCreatedQuotes((current) => [quote, ...current]);
+    setQuoteCreationMessage(quote.id);
+    return true;
   };
 
   return (
@@ -511,6 +527,31 @@ export function Dashboard() {
             ))}
           </section>
 
+          {assignedSeller && (
+            <section className="mt-4 flex flex-col gap-3 rounded-2xl border border-slate-200 bg-white p-4 sm:flex-row sm:items-center sm:justify-between">
+              <div>
+                <h2 className="font-semibold text-slate-900">¿Nueva oportunidad?</h2>
+                <p className="mt-1 text-sm text-slate-600">Registra los datos del cliente y arma una cotización con productos del inventario.</p>
+                {quoteCreationMessage && (
+                  <p role="status" className="mt-2 text-sm font-medium text-emerald-700">
+                    Cotización {quoteCreationMessage} creada correctamente.
+                  </p>
+                )}
+              </div>
+              <button
+                type="button"
+                onClick={() => {
+                  setQuoteCreationMessage(null);
+                  setIsQuoteDialogOpen(true);
+                }}
+                className="inline-flex shrink-0 items-center justify-center gap-2 rounded-xl bg-slate-900 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-slate-800"
+              >
+                <span aria-hidden="true">+</span>
+                Crear cotización
+              </button>
+            </section>
+          )}
+
           <section className="mt-8 panel">
             <div className="mb-5 flex items-center justify-between gap-3">
               <h2 className="text-xl font-semibold text-slate-900">Cotizaciones recientes</h2>
@@ -552,6 +593,14 @@ export function Dashboard() {
           {today && <WorkspaceCalendar quotes={workspaceSalesQuotes} today={today} />}
           <p className="mt-4 text-xs text-slate-500">Las cotizaciones son datos de demostración.</p>
         </>
+      )}
+      {isQuoteDialogOpen && assignedSeller && (
+        <CreateQuoteDialog
+          seller={assignedSeller}
+          quoteNumber={demoSalesQuotes.length + createdQuotes.length + 1}
+          onClose={() => setIsQuoteDialogOpen(false)}
+          onCreate={handleCreateQuote}
+        />
       )}
     </main>
   );

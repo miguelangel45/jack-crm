@@ -9,9 +9,11 @@ import { DASHBOARD_VIEW_STORAGE_KEY, dashboardViewOptions, type DashboardView } 
 import { getSessionFromStorage } from "@/lib/permissions";
 import { isPagesDemo } from "@/lib/pages-demo";
 import {
+  readCreatedSalesQuotes,
   demoSalesQuotes,
   getSalesSellerForUser,
   salesSellers,
+  type CreatedSalesQuote,
   type QuoteStatus,
   type SalesQuote,
 } from "@/domain/sales";
@@ -156,9 +158,14 @@ export function SalesDashboard() {
   const [discountPercent, setDiscountPercent] = useState("10");
   const [generatedDiscount, setGeneratedDiscount] = useState<number | null>(null);
   const [followUpAlertsEnabled, setFollowUpAlertsEnabled] = useState(true);
+  const [createdQuotes, setCreatedQuotes] = useState<CreatedSalesQuote[]>([]);
 
   useEffect(() => {
     setToday(formatInputDate(new Date()));
+  }, []);
+
+  useEffect(() => {
+    setCreatedQuotes(readCreatedSalesQuotes());
   }, []);
 
   useEffect(() => {
@@ -221,7 +228,8 @@ export function SalesDashboard() {
   }, [selectedQuote]);
 
   const canViewAllSellers = role === "admin" || role === "supervisor";
-  const reportQuotes = demoSalesQuotes
+  const allSalesQuotes = [...demoSalesQuotes, ...createdQuotes];
+  const reportQuotes = allSalesQuotes
     .filter((quote) => (
       (canViewAllSellers
         ? selectedSeller === allSellers || quote.seller === selectedSeller
@@ -444,7 +452,7 @@ export function SalesDashboard() {
         <div role="tablist" aria-label="Vendedores" className="mb-5 flex flex-wrap gap-2">
           {sellersToShow.map((seller) => {
             const sellerTabId = seller.toLowerCase().replace(/ /g, "-");
-            const sellerQuoteCount = demoSalesQuotes.filter((quote) => (
+            const sellerQuoteCount = allSalesQuotes.filter((quote) => (
               (seller === allSellers || quote.seller === seller)
               && quote.date >= reportRange.start
               && quote.date <= reportRange.end

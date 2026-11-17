@@ -11,6 +11,23 @@ export type SalesQuote = {
   amount: number;
 };
 
+export type QuotedProduct = {
+  id: string;
+  name: string;
+  quantity: number;
+  unitPrice: number;
+};
+
+export type CreatedSalesQuote = SalesQuote & {
+  customerDocument: string;
+  contactName: string;
+  email: string;
+  phone: string;
+  observations: string;
+  products: QuotedProduct[];
+};
+
+export const CREATED_SALES_QUOTES_STORAGE_KEY = "crm-created-sales-quotes";
 export const MONTHLY_SALES_BUDGET_PER_SELLER = 15_000_000;
 
 export const salesSellers = ["Vendedor 1", "Vendedor 2", "Vendedor 3"] as const;
@@ -25,6 +42,72 @@ export function getSalesSellerForUser(username: string, name: string) {
   return salesSellerByUsername[username.trim().toLowerCase()]
     ?? salesSellers.find((seller) => seller.toLowerCase() === name.trim().toLowerCase())
     ?? null;
+}
+
+function isCreatedSalesQuote(value: unknown): value is CreatedSalesQuote {
+  if (!value || typeof value !== "object") return false;
+
+  const quote = value as Record<string, unknown>;
+  const products = quote.products;
+  return typeof quote.id === "string"
+    && typeof quote.seller === "string"
+    && typeof quote.customer === "string"
+    && typeof quote.date === "string"
+    && typeof quote.validUntil === "string"
+    && (quote.status === "En seguimiento" || quote.status === "Venta realizada" || quote.status === "Venta rechazada")
+    && typeof quote.concept === "string"
+    && typeof quote.amount === "number"
+    && typeof quote.customerDocument === "string"
+    && typeof quote.contactName === "string"
+    && typeof quote.email === "string"
+    && typeof quote.phone === "string"
+    && typeof quote.observations === "string"
+    && Array.isArray(products)
+    && products.every((product: unknown) => {
+      if (!product || typeof product !== "object") return false;
+      const item = product as Record<string, unknown>;
+      return typeof item.id === "string"
+        && typeof item.name === "string"
+        && typeof item.quantity === "number"
+        && typeof item.unitPrice === "number";
+    });
+}
+
+export function readCreatedSalesQuotes(): CreatedSalesQuote[] {
+  if (typeof window === "undefined") return [];
+
+  try {
+    const storedQuotes = window.sessionStorage.getItem(CREATED_SALES_QUOTES_STORAGE_KEY);
+    if (!storedQuotes) return [];
+
+    const parsed: unknown = JSON.parse(storedQuotes);
+    if (!Array.isArray(parsed) || !parsed.every(isCreatedSalesQuote)) {
+      throw new Error("El formato de las cotizaciones guardadas no es válido.");
+    }
+
+    return parsed;
+  } catch (error) {
+    console.error("No se pudieron leer las cotizaciones creadas en esta sesión.", error);
+    return [];
+  }
+}
+
+export function addCreatedSalesQuote(quote: CreatedSalesQuote): boolean {
+  if (typeof window === "undefined") {
+    console.error("No se puede guardar una cotización fuera del navegador.");
+    return false;
+  }
+
+  try {
+    window.sessionStorage.setItem(
+      CREATED_SALES_QUOTES_STORAGE_KEY,
+      JSON.stringify([...readCreatedSalesQuotes(), quote]),
+    );
+    return true;
+  } catch (error) {
+    console.error("No se pudo guardar la cotización en esta sesión.", error);
+    return false;
+  }
 }
 
 export const demoSalesQuotes: SalesQuote[] = [
