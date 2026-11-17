@@ -7,7 +7,13 @@ import { SiteNav } from "@/components/site-nav";
 import type { AppRole } from "@/lib/auth";
 import { getSessionFromStorage } from "@/lib/permissions";
 import { isPagesDemo } from "@/lib/pages-demo";
-import { demoSalesQuotes, salesSellers, type QuoteStatus, type SalesQuote } from "@/domain/sales";
+import {
+  demoSalesQuotes,
+  MONTHLY_SALES_BUDGET_PER_SELLER,
+  salesSellers,
+  type QuoteStatus,
+  type SalesQuote,
+} from "@/domain/sales";
 
 const allSellers = "Todos los vendedores";
 
@@ -36,9 +42,18 @@ function formatCurrency(value: number) {
   return `$ ${new Intl.NumberFormat("es-CO", { maximumFractionDigits: 0 }).format(value)}`;
 }
 
-function downloadQuotePdf(quote: SalesQuote) {
+function getDaysSince(date: string, today: string) {
+  const elapsed = Date.parse(`${today}T00:00:00Z`) - Date.parse(`${date}T00:00:00Z`);
+  return Number.isFinite(elapsed) ? Math.floor(elapsed / 86_400_000) : 0;
+}
+
+function createQuotePdf(quote: SalesQuote, discountPercent = 0) {
   const document = new jsPDF();
-  document.setProperties({ title: `Cotización ${quote.id}` });
+  const discountAmount = Math.round(quote.amount * discountPercent / 100);
+  const finalAmount = quote.amount - discountAmount;
+  document.setProperties({
+    title: `Cotización ${quote.id}${discountPercent > 0 ? ` con descuento del ${discountPercent}%` : ""}`,
+  });
   document.setFont("helvetica", "bold");
   document.setFontSize(18);
   document.text("CRM Operativo", 20, 22);
@@ -61,12 +76,44 @@ function downloadQuotePdf(quote: SalesQuote) {
   document.text(conceptLines, 20, 130);
   const amountY = 138 + conceptLines.length * 6;
   document.setFont("helvetica", "bold");
-  document.text("Valor estimado", 20, amountY);
-  document.text(formatCurrency(quote.amount), 190, amountY, { align: "right" });
+  if (discountPercent > 0) {
+    document.text("Valor antes del descuento", 20, amountY);
+    document.text(formatCurrency(quote.amount), 190, amountY, { align: "right" });
+    document.setFont("helvetica", "normal");
+    document.text(`Descuento (${discountPercent}%)`, 20, amountY + 8);
+    document.text(`- ${formatCurrency(discountAmount)}`, 190, amountY + 8, { align: "right" });
+    document.setFont("helvetica", "bold");
+    document.text("Total con descuento", 20, amountY + 18);
+    document.text(formatCurrency(finalAmount), 190, amountY + 18, { align: "right" });
+  } else {
+    document.text("Valor estimado", 20, amountY);
+    document.text(formatCurrency(quote.amount), 190, amountY, { align: "right" });
+  }
   document.setFont("helvetica", "normal");
   document.setFontSize(9);
-  document.text("Documento de demostración. Datos y valores ficticios.", 20, amountY + 18);
-  document.save(`cotizacion-${quote.id}.pdf`);
+  document.text(
+    "Documento de demostración. Datos y valores ficticios.",
+    20,
+    amountY + (discountPercent > 0 ? 34 : 18),
+  );
+  return document;
+}
+
+function downloadQuotePdf(quote: SalesQuote, discountPercent = 0) {
+  const suffix = discountPercent > 0 ? `-descuento-${discountPercent}pct` : "";
+  createQuotePdf(quote, discountPercent).save(`cotizacion-${quote.id}${suffix}.pdf`);
+}
+
+function openQuotePdf(quote: SalesQuote, discountPercent = 0) {
+  const pdfUrl = URL.createObjectURL(createQuotePdf(quote, discountPercent).output("blob"));
+  const pdfWindow = window.open(pdfUrl, "_blank");
+  if (!pdfWindow) {
+    URL.revokeObjectURL(pdfUrl);
+    throw new Error("El navegador bloqueó la ventana de vista previa.");
+  }
+
+  pdfWindow.opener = null;
+  window.setTimeout(() => URL.revokeObjectURL(pdfUrl), 60_000);
 }
 
 function getShortcutRange(shortcut: DateShortcut): DateRange {
@@ -91,7 +138,7 @@ function getShortcutRange(shortcut: DateShortcut): DateRange {
 }
 
 export function SalesDashboard() {
-  const [selectedSeller, setSelectedSeller] = useState<string>(allSellers);
+  const [selectedSeller, setSelectedSeller] = useState<string>(isPagesDemo ? salesSellers[0] : allSellers);
   const [selectedStatus, setSelectedStatus] = useState<"all" | QuoteStatus>("all");
   const [selectedQuote, setSelectedQuote] = useState<SalesQuote | null>(null);
   const quoteDialogRef = useRef<HTMLElement>(null);
@@ -99,8 +146,18 @@ export function SalesDashboard() {
   const [startDate, setStartDate] = useState("2026-10-01");
   const [endDate, setEndDate] = useState("2026-11-30");
   const [reportRange, setReportRange] = useState({ start: "2026-10-01", end: "2026-11-30" });
+  const [today, setToday] = useState<string | null>(null);
   const [dateError, setDateError] = useState<string | null>(null);
   const [pdfError, setPdfError] = useState<string | null>(null);
+  const [discountError, setDiscountError] = useState<string | null>(null);
+  const [discountSuccess, setDiscountSuccess] = useState<string | null>(null);
+  const [discountPercent, setDiscountPercent] = useState("10");
+  const [generatedDiscount, setGeneratedDiscount] = useState<number | null>(null);
+  const [followUpAlertsEnabled, setFollowUpAlertsEnabled] = useState(true);
+
+  useEffect(() => {
+    setToday(formatInputDate(new Date()));
+  }, []);
 
   useEffect(() => {
     if (isPagesDemo) return;
@@ -143,6 +200,11 @@ export function SalesDashboard() {
     ))
     .sort((first, second) => second.date.localeCompare(first.date));
   const filteredQuotes = reportQuotes.filter((quote) => selectedStatus === "all" || quote.status === selectedStatus);
+  const followUpAlerts = today
+    ? reportQuotes
+      .filter((quote) => quote.status === "En seguimiento" && getDaysSince(quote.date, today) >= 2)
+      .map((quote) => ({ quote, days: getDaysSince(quote.date, today) }))
+    : [];
 
   const quoteCounts = {
     total: reportQuotes.length,
@@ -150,6 +212,24 @@ export function SalesDashboard() {
     completed: reportQuotes.filter((quote) => quote.status === "Venta realizada").length,
     rejected: reportQuotes.filter((quote) => quote.status === "Venta rechazada").length,
   };
+  const soldAmount = reportQuotes
+    .filter((quote) => quote.status === "Venta realizada")
+    .reduce((total, quote) => total + quote.amount, 0);
+  const rejectedAmount = reportQuotes
+    .filter((quote) => quote.status === "Venta rechazada")
+    .reduce((total, quote) => total + quote.amount, 0);
+  const monthlySales = today
+    ? demoSalesQuotes
+      .filter((quote) => (
+        quote.seller === selectedSeller || selectedSeller === allSellers
+      ) && quote.date.startsWith(today.slice(0, 7)) && quote.status === "Venta realizada")
+      .reduce((total, quote) => total + quote.amount, 0)
+    : 0;
+  const monthlyBudget = MONTHLY_SALES_BUDGET_PER_SELLER
+    * (selectedSeller === allSellers ? salesSellers.length : 1);
+  const monthlyBudgetProgress = monthlyBudget === 0
+    ? 0
+    : Math.min(Math.round((monthlySales / monthlyBudget) * 100), 100);
   const closedQuotes = quoteCounts.completed + quoteCounts.rejected;
   const closeRate = closedQuotes === 0 ? 0 : Math.round((quoteCounts.completed / closedQuotes) * 100);
   const statusDistribution = [
@@ -194,6 +274,40 @@ export function SalesDashboard() {
     setSelectedStatus("all");
   }
 
+  function showQuotePdf(quote: SalesQuote, discount = 0) {
+    setPdfError(null);
+    try {
+      openQuotePdf(quote, discount);
+    } catch (error) {
+      console.error("No se pudo visualizar el PDF de la cotización", error);
+      setPdfError("No se pudo abrir la vista previa del PDF. Permite las ventanas emergentes e inténtalo de nuevo.");
+    }
+  }
+
+  function createDiscountedQuotePdf() {
+    if (!selectedQuote) return;
+
+    const discount = Number(discountPercent);
+    if (!Number.isInteger(discount) || discount < 1 || discount > 100) {
+      setDiscountError("Ingresa un descuento entero entre 1% y 100%.");
+      setDiscountSuccess(null);
+      setGeneratedDiscount(null);
+      return;
+    }
+
+    setDiscountError(null);
+    setPdfError(null);
+    setDiscountSuccess(null);
+    try {
+      downloadQuotePdf(selectedQuote, discount);
+      setGeneratedDiscount(discount);
+      setDiscountSuccess(`Se generó y descargó la cotización con ${discount}% de descuento.`);
+    } catch (error) {
+      console.error("No se pudo generar el PDF con descuento", error);
+      setPdfError("No se pudo generar el PDF con descuento. Inténtalo de nuevo.");
+    }
+  }
+
   if (role === null) {
     return (
       <main className="crm-main mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
@@ -205,12 +319,41 @@ export function SalesDashboard() {
 
   const tabId = selectedSeller.toLowerCase().replace(/ /g, "-");
   const sellersToShow = role === "agent" ? [selectedSeller] : [allSellers, ...salesSellers];
-  const metrics: { label: string; value: string; detail: string; icon: CrmIconName; tone: "neutral" | "follow-up" | "won" | "rejected"; filter: "all" | QuoteStatus | null }[] = [
+  const metrics: {
+    label: string;
+    value: string;
+    detail: string;
+    icon: CrmIconName;
+    tone: "neutral" | "follow-up" | "won" | "rejected";
+    filter: "all" | QuoteStatus | null;
+    progress?: number;
+    comparison?: { sold: number; rejected: number };
+  }[] = [
     { label: "Cotizaciones", value: String(quoteCounts.total), detail: "En el período seleccionado", icon: "i-tickets", tone: "neutral", filter: "all" },
     { label: "En seguimiento", value: String(quoteCounts.followUp), detail: "Pendientes de respuesta", icon: "i-alertas", tone: "follow-up", filter: "En seguimiento" },
     { label: "Ventas realizadas", value: String(quoteCounts.completed), detail: "Cotizaciones convertidas", icon: "i-panel", tone: "won", filter: "Venta realizada" },
     { label: "Ventas rechazadas", value: String(quoteCounts.rejected), detail: "Cotizaciones no concretadas", icon: "i-reclamaciones", tone: "rejected", filter: "Venta rechazada" },
     { label: "Tasa de cierre", value: `${closeRate}%`, detail: `${quoteCounts.completed} de ${closedQuotes} ventas decididas`, icon: "i-kpi", tone: "neutral", filter: null },
+    {
+      label: "Presupuesto mensual",
+      value: formatCurrency(monthlyBudget),
+      detail: today
+        ? `${formatCurrency(monthlySales)} vendidos · ${monthlyBudgetProgress}% cumplido`
+        : "Calculando avance del mes...",
+      icon: "i-kpi",
+      tone: "neutral",
+      filter: null,
+      progress: monthlyBudgetProgress,
+    },
+    {
+      label: "Venta vs. rechazada",
+      value: "",
+      detail: "Valor de cotizaciones en el período",
+      icon: "i-panel",
+      tone: "neutral",
+      filter: null,
+      comparison: { sold: soldAmount, rejected: rejectedAmount },
+    },
   ];
 
   return (
@@ -320,7 +463,7 @@ export function SalesDashboard() {
           aria-labelledby={`sales-tab-${tabId}`}
           tabIndex={0}
         >
-          <div className="mb-5 grid gap-4 sm:grid-cols-2 xl:grid-cols-5">
+          <div className="mb-5 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
             {metrics.map((metric) => {
               const filter = metric.filter;
               const content = (
@@ -331,8 +474,33 @@ export function SalesDashboard() {
                       <CrmIcon name={metric.icon} className="h-5 w-5" />
                     </span>
                   </div>
-                  <p className="text-3xl font-bold text-slate-900">{metric.value}</p>
+                  {metric.comparison ? (
+                    <div className="grid grid-cols-2 gap-2">
+                      <div>
+                        <p className="text-lg font-bold text-emerald-700">{formatCurrency(metric.comparison.sold)}</p>
+                        <p className="text-xs text-slate-500">Venta realizada</p>
+                      </div>
+                      <div>
+                        <p className="text-lg font-bold text-rose-700">{formatCurrency(metric.comparison.rejected)}</p>
+                        <p className="text-xs text-slate-500">Venta rechazada</p>
+                      </div>
+                    </div>
+                  ) : (
+                    <p className="text-3xl font-bold text-slate-900">{metric.value}</p>
+                  )}
                   <p className="text-xs text-slate-500">{metric.detail}</p>
+                  {metric.progress !== undefined && (
+                    <div
+                      className="h-2 overflow-hidden rounded-full bg-slate-200"
+                      role="progressbar"
+                      aria-label="Avance del presupuesto mensual"
+                      aria-valuemin={0}
+                      aria-valuemax={100}
+                      aria-valuenow={metric.progress}
+                    >
+                      <div className="h-full rounded-full bg-emerald-500 transition-all" style={{ width: `${metric.progress}%` }} />
+                    </div>
+                  )}
                 </>
               );
 
@@ -353,6 +521,55 @@ export function SalesDashboard() {
               );
             })}
           </div>
+
+          <section className="panel mb-5" aria-labelledby="sales-follow-up-title">
+            <header className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+              <div>
+                <h2 id="sales-follow-up-title" className="text-lg font-semibold text-slate-900">Alertas de seguimiento</h2>
+                <p className="mt-1 text-sm text-slate-600">Aviso cuando una cotización siga pendiente 2 días después de generarse.</p>
+              </div>
+              <label className="inline-flex items-center gap-2 text-sm font-medium text-slate-700">
+                <input
+                  type="checkbox"
+                  checked={followUpAlertsEnabled}
+                  onChange={(event) => setFollowUpAlertsEnabled(event.target.checked)}
+                  className="h-4 w-4 rounded border-slate-300 text-brand-600 focus:ring-brand-500"
+                />
+                Activar alertas
+              </label>
+            </header>
+            {!followUpAlertsEnabled ? (
+              <p className="rounded-xl bg-slate-50 px-4 py-3 text-sm text-slate-600">Las alertas están desactivadas.</p>
+            ) : today === null ? (
+              <p className="rounded-xl bg-slate-50 px-4 py-3 text-sm text-slate-600">Calculando alertas...</p>
+            ) : followUpAlerts.length === 0 ? (
+              <p className="rounded-xl bg-slate-50 px-4 py-3 text-sm text-slate-600">No hay cotizaciones que requieran seguimiento en este período.</p>
+            ) : (
+              <ul className="divide-y divide-amber-200 rounded-xl border border-amber-200 bg-amber-50">
+                {followUpAlerts.map(({ quote, days }) => (
+                  <li key={quote.id} className="flex flex-col gap-2 px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
+                    <p className="text-sm text-amber-950">
+                      <span className="font-semibold">{quote.id} · {quote.customer}</span>
+                      {" · "}Pendiente hace {days} días
+                    </p>
+                    <button
+                      type="button"
+                      className="sales-view-quote w-fit"
+                      onClick={() => {
+                        setPdfError(null);
+                        setDiscountError(null);
+                        setDiscountSuccess(null);
+                        setGeneratedDiscount(null);
+                        setSelectedQuote(quote);
+                      }}
+                    >
+                      Abrir cotización
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </section>
 
           <section className="panel">
             <div className="mb-5 flex flex-col gap-1 sm:flex-row sm:items-end sm:justify-between">
@@ -399,16 +616,24 @@ export function SalesDashboard() {
                           </span>
                         </td>
                         <td className="px-4 py-3 text-right">
-                          <button
-                            type="button"
-                            className="sales-view-quote"
-                            onClick={() => {
-                              setPdfError(null);
-                              setSelectedQuote(quote);
-                            }}
-                          >
-                            Visualizar
-                          </button>
+                          <div className="flex justify-end gap-3">
+                            <button
+                              type="button"
+                              className="sales-view-quote"
+                              onClick={() => {
+                                setPdfError(null);
+                                setDiscountError(null);
+                                setDiscountSuccess(null);
+                                setGeneratedDiscount(null);
+                                setSelectedQuote(quote);
+                              }}
+                            >
+                              Detalle
+                            </button>
+                            <button type="button" className="sales-view-quote" onClick={() => showQuotePdf(quote)}>
+                              Ver PDF
+                            </button>
+                          </div>
                         </td>
                       </tr>
                     ))}
@@ -421,6 +646,8 @@ export function SalesDashboard() {
               </p>
             )}
           </section>
+
+          {pdfError && !selectedQuote && <p role="alert" className="mt-3 text-sm text-rose-700">{pdfError}</p>}
 
           <section className="panel mt-6" aria-labelledby="sales-comparison-title">
             <div className="mb-5">
@@ -527,7 +754,63 @@ export function SalesDashboard() {
               </div>
               <p className="mt-4 text-xs text-slate-500">Cotización de demostración; los datos y valores son ficticios.</p>
               {pdfError && <p role="alert" className="mt-3 text-sm text-rose-700">{pdfError}</p>}
-              <div className="mt-6 flex justify-end">
+              <div className="mt-6 rounded-2xl border border-slate-200 p-4">
+                <label htmlFor="quote-discount" className="block text-sm font-semibold text-slate-800">
+                  Generar descuento
+                </label>
+                <p className="mt-1 text-xs text-slate-500">El descuento se aplicará solo al nuevo PDF y no cambiará la cotización original.</p>
+                <div className="mt-3 flex flex-col gap-3 sm:flex-row">
+                  <div className="relative sm:w-36">
+                    <input
+                      id="quote-discount"
+                      type="number"
+                      min="1"
+                      max="100"
+                      step="1"
+                      value={discountPercent}
+                      onChange={(event) => {
+                        setDiscountPercent(event.target.value);
+                        setDiscountError(null);
+                        setDiscountSuccess(null);
+                        setGeneratedDiscount(null);
+                      }}
+                      aria-describedby={discountError ? "quote-discount-error" : undefined}
+                      className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 pr-8 text-sm text-slate-800"
+                    />
+                    <span className="pointer-events-none absolute right-3 top-2.5 text-sm text-slate-500">%</span>
+                  </div>
+                  <button
+                    type="button"
+                    className="rounded-xl bg-brand-600 px-4 py-2.5 text-sm font-semibold text-white transition hover:opacity-90"
+                    onClick={createDiscountedQuotePdf}
+                  >
+                    Generar descuento
+                  </button>
+                </div>
+                {discountError && <p id="quote-discount-error" role="alert" className="mt-2 text-sm text-rose-700">{discountError}</p>}
+                {discountSuccess && (
+                  <div className="mt-3 flex flex-wrap items-center gap-3">
+                    <p role="status" className="text-sm text-emerald-700">{discountSuccess}</p>
+                    {generatedDiscount !== null && (
+                      <button
+                        type="button"
+                        className="sales-view-quote"
+                        onClick={() => showQuotePdf(selectedQuote, generatedDiscount)}
+                      >
+                        Visualizar PDF con descuento
+                      </button>
+                    )}
+                  </div>
+                )}
+              </div>
+              <div className="mt-6 flex flex-wrap justify-end gap-3">
+                <button
+                  type="button"
+                  className="sales-date-shortcut"
+                  onClick={() => showQuotePdf(selectedQuote)}
+                >
+                  Visualizar PDF
+                </button>
                 <button
                   type="button"
                   className="rounded-xl bg-slate-900 px-4 py-2.5 text-sm font-semibold text-white"

@@ -11,6 +11,8 @@ export type SalesQuote = {
   amount: number;
 };
 
+export const MONTHLY_SALES_BUDGET_PER_SELLER = 15_000_000;
+
 export const salesSellers = ["Vendedor 1", "Vendedor 2", "Vendedor 3"] as const;
 
 export const demoSalesQuotes: SalesQuote[] = [
